@@ -1,7 +1,6 @@
 import { Router, json } from "express";
 import UserController from "./UserController";
-import AssetController from "./AssetController";
-import AppSystem from "../AppSystem";
+import TrackController from "./TrackController";
 
 namespace ApiController {
   export const router = Router();
@@ -12,7 +11,7 @@ namespace ApiController {
   });
 
   router.use("/user", jsonMw, UserController.router);
-  router.use("/asset", AssetController.router);
+  router.use("/track", jsonMw, TrackController.router);
 }
 
 export default ApiController;

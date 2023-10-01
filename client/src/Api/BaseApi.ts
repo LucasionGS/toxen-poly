@@ -2,6 +2,20 @@ import { ClientUser, RoleAttributes, UserAttributes } from "@shared/models"
 
 
 namespace BaseApi {
+  const _hasIdentityToken = window.localStorage.getItem("toxen_identity_token") !== null;
+  function generateIdentityToken() {
+    const token = [...window.crypto.getRandomValues(new Uint32Array(16))]
+      .map(v => v.toString(16))
+      .join("")
+      .slice(0, 96).padEnd(96, "0");
+    window.localStorage.setItem("toxen_identity_token", token);
+    return token;
+  }
+  /**
+   * The identity token is used to authenticate the user to LAN devices.
+   */
+  export const identityToken = _hasIdentityToken ? window.localStorage.getItem("toxen_identity_token")! : generateIdentityToken();
+
   const baseUrl = `${window.location.protocol}//${window.location.host}/api`;
   const __user = window.localStorage.getItem("user");
   let user: ClientUser | null = __user ? JSON.parse(__user) : null;

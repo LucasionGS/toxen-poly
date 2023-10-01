@@ -15,10 +15,10 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": "./",
+    // "baseUrl": ".",
     "paths": {
-      "*": ["node_modules/*"],
-      "@shared/*": ["../shared/*"]
+      "*": ["./node_modules/*"],
+      "@shared/*": ["../shared/*"],
     },
   },
   "include": ["src"],

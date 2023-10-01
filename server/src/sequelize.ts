@@ -2,11 +2,11 @@ import { Sequelize, Model, DataTypes, Op } from "sequelize";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import AppSystem from "./AppSystem";
-import { fstat } from "fs";
 import fs from "fs";
 import Path from "path";
 import { NextFunction, Request, Response } from "express";
 import { ClientUser } from "@shared/models";
+import type { ITrack } from "@shared/track";
 
 process.env.JWT_SECRET ||= "ioncore_json_web_token_secret_please_change_me";
 if (!AppSystem.createDir(Path.dirname(AppSystem.getSqliteDatabasePath()))) {
@@ -51,6 +51,45 @@ export class User extends Model<UserAttributes, UserAttributesCreation> implemen
     });
   }
 
+  /**
+   * Returns the path to the music folder for this user.
+   */
+  public async getMusicPath() {
+    // TODO: Make this configurable
+    return "C:/Users/lucas/Music/tpoly";
+  }
+
+  public async getTracks() {
+    const musicPath = await this.getMusicPath();
+    return fs.promises.readdir(musicPath, { withFileTypes: true }).then(files => {
+      return files.filter(file => file.isDirectory()).map(file => file.name);
+    }).then(async dirs => {
+      // Read the info.json file for each directory
+      const infos = await Promise.all(dirs.map(async dir => {
+        return fs.promises.readFile(Path.join(musicPath, dir, "info.json"), "utf8").then(data => {
+          return JSON.parse(data) as ITrack;
+        }).catch(() => {
+          return null;
+        });
+      }));
+      return infos.filter(Boolean) as ITrack[];
+    });
+  }
+
+  public async getTrack(foldername: string) {
+    const trackPath = await this.getMusicPath() + "/" + foldername;
+    if (await fs.promises.stat(trackPath).then(() => true).catch(() => false)) {
+      const info = await fs.promises.readFile(trackPath + "/info.json", "utf8").then(data => {
+        return JSON.parse(data) as ITrack;
+      }).catch(() => {
+        return null;
+      });
+
+      return info;
+    }
+    return null;
+  }
+
   public static async hashPassword(password: string) {
     return bcrypt.hash(password, 10);
   };
@@ -84,7 +123,7 @@ export class User extends Model<UserAttributes, UserAttributesCreation> implemen
     password: string;
   }) {
     User.verifyUsername(data.username);
-    
+
     // check if username is taken
     if (await User.findOne({
       where: {
@@ -95,10 +134,24 @@ export class User extends Model<UserAttributes, UserAttributesCreation> implemen
     })) {
       throw new Error("Username is already taken");
     }
-    
+
     return User.create({
       username: data.username,
       password: await User.hashPassword(data.password),
+    });
+  }
+
+  public static async getLocalUser() {
+    return await User.findOrCreate({
+      where: {
+        username: "@local",
+        password: "",
+      },
+    }).then(([user, isNew]) => {
+      if (isNew) {
+        console.log("Created local user");
+      }
+      return user;
     });
   }
 
@@ -145,9 +198,20 @@ export class User extends Model<UserAttributes, UserAttributesCreation> implemen
     options ??= {};
     const { required = true, admin = false, permissions } = options;
     return async (req: Request, res: Response, next: NextFunction) => {
+      // Check if accessed from localhost
+      const isLocal = async () => {
+        if (req.ip === "::1" || req.ip === "::ffff:127.0.0.1" || true) { // TODO: Remove true, this is for testing
+          (req as any).user = await User.getLocalUser();
+          (req as any).clientUser = await (req as any).user.toClientJSON();
+          next();
+          return true;
+        }
+        return false;
+      };
       const token = req.headers.authorization?.split(" ")[1];
       if (!token) {
         if (required) {
+          if (await isLocal()) return;
           res.status(401).json({
             error: "Authentication required",
           });
@@ -179,7 +243,7 @@ export class User extends Model<UserAttributes, UserAttributesCreation> implemen
             return;
           }
         }
-        
+
         (req as any).user = user;
         (req as any).clientUser = clientUser;
         next();
@@ -199,7 +263,7 @@ export class User extends Model<UserAttributes, UserAttributesCreation> implemen
     }
     return user;
   }
-  
+
   public static getAuthenticatedUser(req: Request) {
     return ((req as any).user as User) || null;
   }
@@ -543,7 +607,7 @@ export class Asset extends Model<AssetAttributes, AssetAttributesCreation> imple
   public getFullPath() {
     return Path.join(AppSystem.folders.assetFolder, this.name);
   }
-  
+
   /**
    * Returns the file for this asset. This deletes the file from the assets folder and removes the asset from the database.
    * 

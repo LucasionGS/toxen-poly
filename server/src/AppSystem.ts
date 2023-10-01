@@ -5,9 +5,9 @@ import multer from "multer";
 
 namespace AppSystem {
   /** User friendly application name */
-  export const friendlyAppName = "Ioncore Application";
+  export const friendlyAppName = "Toxen";
   /** Computer friendly application name. Used for folder names so it should only contain letters, numbers and underscores. */
-  export const appName = "ioncore_app";
+  export const appName = "toxen-poly";
   /** `true` if `NODE_ENV` is `development` */
   export const isDev = process.env.NODE_ENV === "development";
 

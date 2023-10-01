@@ -55,9 +55,9 @@ function requirement(opts: {
 const pages: Route[] = [
   {
     path: /^\/$/,
-    title: "Home",
+    title: "Toxen",
     component: async () => {
-      const HomePage = (await import("./pages/Home/Home")).default;
+      const HomePage = (await import("./pages/ToxenApp/ToxenApp")).default;
       return <HomePage />
     },
   },
