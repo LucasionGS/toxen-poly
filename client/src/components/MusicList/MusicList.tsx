@@ -1,0 +1,43 @@
+import React from "react";
+import ToxenPlayer from "../ToxenPlayer/ToxenPlayer";
+import ToxenApi from "../../Api/ToxenApi";
+import { useDraggable } from "react-use-draggable-scroll";
+import { Button } from "@mantine/core";
+import "./MusicList.scss";
+
+export default function MusicList() {
+  const controller = ToxenPlayer.useController();
+  const current = controller.track;
+
+  React.useEffect(() => {
+    ToxenApi.getTracks().then(list => {
+      controller.setTrackList(list);
+      if (list.length > 0) {
+        controller.play(list.find(x => x.title.includes("ZELDA")) ?? list[0]);
+      }
+    });
+  }, []);
+
+  return (
+    <div className="toxen-app-music-list">
+      <h1 style={{
+        textAlign: "center",
+      }}>Music List</h1>
+      {controller.trackList.map((x, i) => (
+        <Button
+          fullWidth
+          key={x.uid + i}
+          className="toxen-music-list-item"
+          onClick={() => controller.play(x)}
+          variant={current === x ? "filled" : "subtle"}
+          // leftIcon={<img src={x.backgroundPath!} style={{
+          //   maxWidth: 50,
+          //   maxHeight: 50,
+          // }} />}
+        >
+          {x.artist} - {x.title}
+        </Button>
+      ))}
+    </div>
+  )
+};

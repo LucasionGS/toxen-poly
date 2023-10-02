@@ -5,126 +5,10 @@ import "./ToxenPlayer.scss";
 import { Button, Slider } from '@mantine/core';
 import { IconArrowsShuffle, IconPlayerPauseFilled, IconPlayerPlayFilled, IconPlayerTrackNextFilled, IconPlayerTrackPrevFilled, IconRepeat } from '@tabler/icons-react';
 import secondsToTimestamp from '../../helpers/secondsToTimestamp';
+import PrimaryPanel from '../PrimaryPanel/PrimaryPanel';
+import { useIdle, useResizeObserver } from '@mantine/hooks';
 
-interface ToxenPlayerController {
-  /**
-   * The current track that is playing.
-   */
-  track: Track | null;
-  /**
-   * The list of tracks that are available to play.
-   */
-  trackList: Track[];
-  /**
-   * Sets the list of tracks that are available to play.
-   */
-  setTrackList: React.Dispatch<React.SetStateAction<Track[]>>;
-  /**
-   * Whether or not the current media is paused.
-   */
-  paused: boolean;
-  /**
-   * The video object that is used to play the media.
-   * 
-   * If you want to listen to events, use `controller.subscribeVideoEvent` to subscribe to events on this object.
-   */
-  videoRef: HTMLVideoElement | null;
-  /**
-   * Subscribes to events on the video object.  
-   * Returns a function that unsubscribes from the event.
-   */
-  subscribeVideoEvent<K extends keyof HTMLVideoElementEventMap>(type: K, listener: (this: HTMLVideoElement, ev: HTMLVideoElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): () => void;
-  /**
-   * Sets the video object that is used to play the media.
-   * @internal
-   */
-  _setVideoRef: React.Dispatch<React.SetStateAction<HTMLVideoElement | null>>;
-  /**
-   * Plays the current media.
-   */
-  play(): void;
-  /**
-   * Starts playing the specified track.
-   * @param track The track to play.
-   */
-  play(track: Track): void;
-  /**
-   * Starts playing the specified URL. URL must be absolute.
-   * @param url The URL to play.
-   */
-  play(url: string): void;
-  /**
-   * Pauses the current media.
-   */
-  pause(): void;
-  /**
-   * Whether or not the current media is a video.
-   */
-  isVideo: boolean;
-  /**
-   * Set the volume of the media. 0-1
-   */
-  setVolume(volume: number): void;
-
-  /**
-   * The current volume of the media. 0-1
-   */
-  getVolume(): number;
-
-  /**
-   * Seeks to the specified time in seconds.
-   */
-  seekTo(seconds: number): void;
-
-  /**
-   * Seeks to the specified percent. 0-1
-   */
-  seekToPercent(percent: number): void;
-
-  /**
-   * Play the next track in the list.
-   * 
-   * ### Behavior
-   * - If there is no track playing, it will play the first track in the list.
-   * - If the current track is the last track in the list, it will play the first track in the list.
-   * - If it is the only track in the list, it will restart the track.
-   * - If Repeat is enabled, it will still play the next track and not restart the track. (Repeating is handled internally)
-   * - If Shuffle is enabled, it will play a random track in the list.
-   */
-  next(): void;
-
-  /**
-   * Play the previous track in the list.
-   * 
-   * ### Behavior
-   * - If there is no track playing, it will play the first track in the list.
-   * - If the current track is the first track in the list, it will play the last track in the list.
-   * - If it is the only track in the list, it will restart the track.
-   */
-  previous(): void;
-
-  /**
-   * Whether or not the player should repeat the current track when it ends.
-   */
-  repeat: boolean;
-
-  /**
-   * Set whether or not the player should repeat the current track when it ends.
-   */
-  setRepeat(repeat: boolean): void;
-
-  /**
-   * Whether or not the player should shuffle the tracks.
-   */
-  shuffle: boolean;
-
-  /**
-   * Set whether or not the player should shuffle the tracks.
-   */
-  setShuffle(shuffle: boolean): void;
-}
-
-const ToxenPlayerContext = React.createContext<ToxenPlayerController>({} as any);
+const ToxenPlayerContext = React.createContext<ToxenPlayer.ToxenPlayerController>({} as any);
 
 export interface ToxenPlayerProps {
   /**
@@ -156,6 +40,11 @@ export interface ToxenPlayerProps {
    * Whether or not to show the progress bar.
    */
   progressBar?: boolean;
+
+  /**
+   * Whether or not to show the primary panel.
+   */
+  primaryPanel?: boolean;
 
   /**
    * The width of the player.
@@ -191,38 +80,170 @@ function ToxenPlayer(props: ToxenPlayerProps) {
   }, [props.onEnded]);
 
   return (
-    <div className="toxen-player" style={{
-      width: props.width,
-      height: props.height
-    }}>
-      <video className="toxen-player-video" ref={controller._setVideoRef} />
-      {
-        !controller.track && (
-          <div className="toxen-player-no-track">
-            <h1>No track selected</h1>
+    <div className="toxen-player-wrapper" style={{ width: props.width, height: props.height }}>
+      <div className="toxen-player">
+        <video className="toxen-player-video" ref={controller._setVideoRef} />
+        {
+          !controller.track && (
+            <div className="toxen-player-no-track">
+              <h1>No track selected</h1>
+            </div>
+          )
+        }
+        <div className="toxen-player-overlay">
+          {props.background && <ToxenPlayer.Background />}
+          <div className="toxen-player-bottomsection">
+            {props.controls && <ToxenPlayer.Controls />}
+            {props.progressBar && <ToxenPlayer.ProgressBar />}
+            {props.volumeSlider && <ToxenPlayer.VolumeSlider />}
           </div>
-        )
-      }
-      <div className="toxen-player-overlay">
-        {props.background && <ToxenPlayer.Background />}
-        <div className="toxen-player-bottomsection">
-          {props.controls && <ToxenPlayer.Controls />}
-          {props.progressBar && <ToxenPlayer.ProgressBar />}
-          {props.volumeSlider && <ToxenPlayer.VolumeSlider />}
+
+          {/* Children if any */}
+          {props.children}
         </div>
-
-
-        {/* Children if any */}
-        {props.children}
       </div>
+      {props.primaryPanel && <PrimaryPanel />}
     </div>
   )
 }
 
 namespace ToxenPlayer {
+  export interface ToxenPlayerController {
+    /**
+     * The current track that is playing.
+     */
+    track: Track | null;
+    /**
+     * The list of tracks that are available to play.
+     */
+    trackList: Track[];
+    /**
+     * Sets the list of tracks that are available to play.
+     */
+    setTrackList: React.Dispatch<React.SetStateAction<Track[]>>;
+    /**
+     * Whether or not the current media is paused.
+     */
+    paused: boolean;
+    /**
+     * The video object that is used to play the media.
+     * 
+     * If you want to listen to events, use `controller.subscribeVideoEvent` to subscribe to events on this object.
+     */
+    videoRef: HTMLVideoElement | null;
+    /**
+     * Subscribes to events on the video object.  
+     * Returns a function that unsubscribes from the event.
+     */
+    subscribeVideoEvent<K extends keyof HTMLVideoElementEventMap>(type: K, listener: (this: HTMLVideoElement, ev: HTMLVideoElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): () => void;
+    /**
+     * Sets the video object that is used to play the media.
+     * @internal
+     */
+    _setVideoRef: React.Dispatch<React.SetStateAction<HTMLVideoElement | null>>;
+    /**
+     * Plays the current media.
+     */
+    play(): void;
+    /**
+     * Starts playing the specified track.
+     * @param track The track to play.
+     */
+    play(track: Track): void;
+    /**
+     * Starts playing the specified URL. URL must be absolute.
+     * @param url The URL to play.
+     */
+    play(url: string): void;
+    /**
+     * Pauses the current media.
+     */
+    pause(): void;
+    /**
+     * Whether or not the current media is a video.
+     */
+    isVideo: boolean;
+    /**
+     * Set the volume of the media. 0-1
+     */
+    setVolume(volume: number): void;
+
+    /**
+     * The current volume of the media. 0-1
+     */
+    getVolume(): number;
+
+    /**
+     * Seeks to the specified time in seconds.
+     */
+    seekTo(seconds: number): void;
+
+    /**
+     * Seeks to the specified percent. 0-1
+     */
+    seekToPercent(percent: number): void;
+
+    /**
+     * Play the next track in the list.
+     * 
+     * ### Behavior
+     * - If there is no track playing, it will play the first track in the list.
+     * - If the current track is the last track in the list, it will play the first track in the list.
+     * - If it is the only track in the list, it will restart the track.
+     * - If Repeat is enabled, it will still play the next track and not restart the track. (Repeating is handled internally)
+     * - If Shuffle is enabled, it will play a random track in the list.
+     */
+    next(): void;
+
+    /**
+     * Play the previous track in the list.
+     * 
+     * ### Behavior
+     * - If there is no track playing, it will play the first track in the list.
+     * - If the current track is the first track in the list, it will play the last track in the list.
+     * - If it is the only track in the list, it will restart the track.
+     */
+    previous(): void;
+
+    /**
+     * Whether or not the player should repeat the current track when it ends.
+     */
+    repeat: boolean;
+
+    /**
+     * Set whether or not the player should repeat the current track when it ends.
+     */
+    setRepeat(repeat: boolean): void;
+
+    /**
+     * Whether or not the player should shuffle the tracks.
+     */
+    shuffle: boolean;
+
+    /**
+     * Set whether or not the player should shuffle the tracks.
+     */
+    setShuffle(shuffle: boolean): void;
+
+    /**
+     * Is Primary panel open
+     */
+    primaryPanelOpen: boolean;
+
+    /**
+     * Set Primary panel open
+     */
+    setPrimaryPanelOpen: React.Dispatch<React.SetStateAction<boolean>>;
+
+    /**
+     * Is the user idling.
+     */
+    isIdling: boolean;
+  }
+
   /**
    * Provides the ToxenPlayerController to the children.  
-   * Inside the children, you can use the `useToxenPlayer` hook to get the controller, and use it to control a `ToxenPlayer`.
+   * Inside the children, you can use the `ToxenPlayer.useController()` hook to get the controller, and use it to control a `ToxenPlayer`.
    */
   export function Provider(props: {
     children: React.ReactNode
@@ -237,7 +258,7 @@ namespace ToxenPlayer {
     shuffle?: boolean;
   }) {
     const { children, repeat: _repeat = false, shuffle: _shuffle = false } = props;
-    
+
     const [trackIndex, setTrackIndex] = useState<number>(-1);
     const [track, setTrack] = useState<Track | null>(null);
 
@@ -269,7 +290,7 @@ namespace ToxenPlayer {
           const src = track.mediaPath;
           if (src) {
             videoRef.src = src;
-            const index = trackList.findIndex(x => x.mediaPath === track.mediaPath);
+            const index = trackList.indexOf(track);
             setTrackIndex(index);
             setTrack(track);
           }
@@ -342,6 +363,10 @@ namespace ToxenPlayer {
 
     const [shuffle, setShuffle] = React.useState<boolean>(_shuffle);
 
+    const [primaryPanelOpen, setPrimaryPanelOpen] = React.useState<boolean>(false);
+
+    const isIdling = useIdle(1000 * 4);
+
     // Subscribe to events
     React.useEffect(() => {
       const onPause = () => setPaused(true);
@@ -380,7 +405,10 @@ namespace ToxenPlayer {
         repeat,
         setRepeat,
         shuffle,
-        setShuffle
+        setShuffle,
+        primaryPanelOpen,
+        setPrimaryPanelOpen,
+        isIdling,
       }}>
         {children}
       </ToxenPlayerContext.Provider>
