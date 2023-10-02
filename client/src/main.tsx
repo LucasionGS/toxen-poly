@@ -7,6 +7,7 @@ import IoncoreLoader from "./components/IoncoreLoader/IoncoreLoader"
 import UserApi from "./Api/UserApi"
 import BaseApi from "./Api/BaseApi"
 import ErrorPage from "./pages/Error/Error"
+import SettingsProvider from "./components/SettingsProvider/SettingsProvider"
 
 function requirement(opts: {
   admin?: boolean,
@@ -36,7 +37,7 @@ function requirement(opts: {
           return <ErrorPage error={new Error("Not authorized")} statusCode={403} />
         }
       }
-      
+
       if (opts.permission) {
         try {
           if (!await UserApi.hasPermission(opts.permission)) {
@@ -81,9 +82,11 @@ const pages: Route[] = [
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <IoncoreProvider theme={{ scheme: "dark" }}>
-      <Router pages={pages} loadingPage={() => <IoncoreLoader centered />} errorPage={ErrorPage} />
-    </IoncoreProvider>
+    <SettingsProvider>
+      <IoncoreProvider theme={{ scheme: "dark" }}>
+        <Router pages={pages} loadingPage={() => <IoncoreLoader centered />} errorPage={ErrorPage} />
+      </IoncoreProvider>
+    </SettingsProvider>
   </React.StrictMode>,
 );
 

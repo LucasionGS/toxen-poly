@@ -7,6 +7,7 @@ import { IconArrowsShuffle, IconPlayerPauseFilled, IconPlayerPlayFilled, IconPla
 import secondsToTimestamp from '../../helpers/secondsToTimestamp';
 import PrimaryPanel from '../PrimaryPanel/PrimaryPanel';
 import { useIdle, useResizeObserver } from '@mantine/hooks';
+import { useSettings } from '../SettingsProvider/SettingsProvider';
 
 const ToxenPlayerContext = React.createContext<ToxenPlayer.ToxenPlayerController>({} as any);
 
@@ -49,11 +50,16 @@ export interface ToxenPlayerProps {
   /**
    * The width of the player.
    */
-  width?: number | string;
+  width?: number;
   /**
    * The height of the player.
    */
-  height?: number | string;
+  height?: number;
+
+  /**
+   * Whether or not to fill the screen.
+   */
+  fillscreen?: boolean;
 
   /**
    * On track ended
@@ -74,13 +80,27 @@ function ToxenPlayer(props: ToxenPlayerProps) {
       }));
     }
 
+    const onresize = (ev: UIEvent) => {
+      if (props.fillscreen) {
+        controller._setPlayerWidth(window.innerWidth);
+        controller._setPlayerHeight(window.innerHeight);
+      }
+    }
+    window.addEventListener("resize", onresize);
+    
     return () => {
       unsubs.forEach(x => x());
+      window.removeEventListener("resize", onresize);
     }
   }, [props.onEnded]);
 
+  React.useEffect(() => {
+    controller._setPlayerWidth(props.fillscreen ? window.innerWidth : (props.width ?? 800));
+    controller._setPlayerHeight(props.fillscreen ? window.innerHeight : (props.height ?? 450));
+  }, [props.width, props.height]);
+
   return (
-    <div className="toxen-player-wrapper" style={{ width: props.width, height: props.height }}>
+    <div className="toxen-player-wrapper" style={{ width: controller.playerWidth, height: controller.playerHeight }}>
       <div className="toxen-player">
         <video className="toxen-player-video" ref={controller._setVideoRef} />
         {
@@ -91,7 +111,11 @@ function ToxenPlayer(props: ToxenPlayerProps) {
           )
         }
         <div className="toxen-player-overlay">
-          {props.background && <ToxenPlayer.Background />}
+          {props.background && (
+            <ToxenPlayer.Background>
+              <ToxenPlayer.AudioVisualizer />
+            </ToxenPlayer.Background>
+          )}
           <div className="toxen-player-bottomsection">
             {props.controls && <ToxenPlayer.Controls />}
             {props.progressBar && <ToxenPlayer.ProgressBar />}
@@ -239,6 +263,33 @@ namespace ToxenPlayer {
      * Is the user idling.
      */
     isIdling: boolean;
+
+    /**
+     * The audio analyser.
+     */
+    audioAnalyser: AnalyserNode | null;
+
+    /**
+     * Width of the player. Updated on resize.
+     */
+    playerWidth: number;
+
+    /**
+     * Set width of the player.
+     * @internal
+     */
+    _setPlayerWidth: React.Dispatch<React.SetStateAction<number>>;
+
+    /**
+     * Height of the player. Updated on resize.
+     */
+    playerHeight: number;
+
+    /**
+     * Set height of the player.
+     * @internal
+     */
+    _setPlayerHeight: React.Dispatch<React.SetStateAction<number>>;
   }
 
   /**
@@ -258,6 +309,7 @@ namespace ToxenPlayer {
     shuffle?: boolean;
   }) {
     const { children, repeat: _repeat = false, shuffle: _shuffle = false } = props;
+    const settings = useSettings();
 
     const [trackIndex, setTrackIndex] = useState<number>(-1);
     const [track, setTrack] = useState<Track | null>(null);
@@ -367,8 +419,17 @@ namespace ToxenPlayer {
 
     const isIdling = useIdle(1000 * 4);
 
+    const [audioAnalyser, setAudioAnalyser] = React.useState<AnalyserNode | null>(null);
+
+    const [playerWidth, setPlayerWidth] = React.useState<number>(0);
+
+    const [playerHeight, setPlayerHeight] = React.useState<number>(0);
+
     // Subscribe to events
     React.useEffect(() => {
+
+      setVolume(settings.get("volume")! / 100);
+
       const onPause = () => setPaused(true);
       const onPlay = () => setPaused(false);
       if (videoRef) {
@@ -382,7 +443,19 @@ namespace ToxenPlayer {
           videoRef.removeEventListener("play", onPlay);
         }
       }
-    }, [videoRef]);
+    }, [videoRef, settings.get("volume")]);
+
+    // If player starts first time, generate audio analyser
+    React.useEffect(() => {
+      if (!videoRef || audioAnalyser || paused) return;
+      const audioCtx = new AudioContext();
+      const analyser = audioCtx.createAnalyser();
+      const source = audioCtx.createMediaElementSource(videoRef);
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination);
+
+      setAudioAnalyser(analyser);
+    }, [paused, videoRef]);
 
     return (
       <ToxenPlayerContext.Provider value={{
@@ -409,6 +482,11 @@ namespace ToxenPlayer {
         primaryPanelOpen,
         setPrimaryPanelOpen,
         isIdling,
+        audioAnalyser,
+        playerWidth,
+        _setPlayerWidth: setPlayerWidth,
+        playerHeight,
+        _setPlayerHeight: setPlayerHeight,
       }}>
         {children}
       </ToxenPlayerContext.Provider>
@@ -428,7 +506,7 @@ namespace ToxenPlayer {
   /**
    * Displays a background.
    */
-  export function Background() {
+  export function Background(props: { children?: React.ReactNode }) {
     const controller = ToxenPlayer.useController();
     const [background, setBackground] = React.useState<string | undefined>();
 
@@ -442,9 +520,13 @@ namespace ToxenPlayer {
     return (
       <div className="toxen-player-background">
         {background && <img src={background} alt="Track background" className="toxen-player-background-img" />}
+        <div className="toxen-player-background-overlay">
+          {props.children}
+        </div>
       </div>
     );
   }
+
   /**
    * Displays a set of default control buttons.
    */
@@ -489,7 +571,8 @@ namespace ToxenPlayer {
    */
   export function VolumeSlider() {
     const controller = ToxenPlayer.useController();
-    const [volume, setVolume] = React.useState<number>(0);
+    const [volume, setVolume] = React.useState<number>(50);
+    const settings = useSettings();
 
     React.useEffect(() => {
       setVolume(controller.getVolume());
@@ -506,13 +589,13 @@ namespace ToxenPlayer {
           className="toxen-player-volume-slider-bar"
           value={volume}
           onChange={v => { setVolume(v); controller.setVolume(v) }}
-          onChangeEnd={v => { setVolume(v); controller.setVolume(v) }}
+          onChangeEnd={v => { setVolume(v); controller.setVolume(v); settings.set("volume", v * 100); }}
           min={0}
           max={1}
           step={0.01}
           label={(v) => `${Math.round(v * 100)}%`}
           style={{
-            width: "50%"
+            width: "50cqw"
           }}
         />
       </div>
@@ -566,9 +649,83 @@ namespace ToxenPlayer {
           step={1}
           label={(v) => `${secondsToTimestamp(v, "minutes")} / ${secondsToTimestamp(controller.videoRef?.duration || 0, "minutes")}`}
           style={{
-            width: "90%"
+            width: "90cqw"
           }}
         />
+      </div>
+    );
+  }
+
+  /**
+   * Audio visualizer effects. Animations on the background are drawn by a canvas.
+   */
+  export function AudioVisualizer() {
+    const controller = ToxenPlayer.useController();
+    const [bufferLength, setBufferLength] = React.useState<number>(0);
+    const [dataArray, setDataArray] = React.useState<Uint8Array | null>(null);
+    const [canvas, setCanvas] = React.useState<HTMLCanvasElement | null>(null);
+    // const [canvasContext, setCanvasContext] = React.useState<CanvasRenderingContext2D | null>(null);
+    // const [canvasWidth, setCanvasWidth] = React.useState<number>(0);
+    // const [canvasHeight, setCanvasHeight] = React.useState<number>(0);
+    const [animationFrame, setAnimationFrame] = React.useState<number>(0);
+
+    React.useEffect(() => {
+      if (!controller.videoRef) return;
+      const { audioAnalyser } = controller;
+      if (!audioAnalyser) return;
+      audioAnalyser.fftSize = 512;
+      const bufferLength = audioAnalyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      setBufferLength(bufferLength);
+      setDataArray(dataArray);
+    }, [controller.videoRef, controller.audioAnalyser]);
+
+    React.useEffect(() => {
+      const { audioAnalyser } = controller;
+      if (!audioAnalyser) return;
+      if (!canvas) return;
+
+      const canvasCtx = canvas?.getContext("2d");
+      if (!canvasCtx) return;
+      // setCanvasContext(canvasCtx);
+      // setCanvasWidth(canvas.width);
+      // setCanvasHeight(canvas.height);
+
+
+      if (!dataArray) return;
+
+      const draw = () => {
+        setAnimationFrame(requestAnimationFrame(draw));
+
+        // Resize canvas
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+        
+        audioAnalyser.getByteFrequencyData(dataArray);
+        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+        const barWidth = (canvas.width / bufferLength) * 2.5;
+        let barHeight;
+        let x = 0;
+        // canvasCtx.fillStyle = `rgb(${barHeight + 100},50,50)`;
+        canvasCtx.fillStyle = controller.track?.data.visualizerColor ?? "#fff";
+        for (let i = 0; i < bufferLength; i++) {
+          barHeight = dataArray[i] * 1.5;
+          canvasCtx.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2);
+          x += barWidth;
+        }
+      }
+
+      draw();
+
+      return () => {
+        cancelAnimationFrame(animationFrame);
+      }
+    }, [controller.audioAnalyser, canvas, dataArray, controller.track]);
+
+    return (
+      <div className="toxen-player-audio-visualizer">
+        <canvas className="toxen-player-audio-visualizer-canvas" ref={setCanvas} width={1920} height={1080}/>
       </div>
     );
   }

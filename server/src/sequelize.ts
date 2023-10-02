@@ -6,7 +6,9 @@ import fs from "fs";
 import Path from "path";
 import { NextFunction, Request, Response } from "express";
 import { ClientUser } from "@shared/models";
-import type { ITrack } from "@shared/track";
+import type { ITrack } from "@shared/ITrack";
+import type { ISettings } from "@shared/ISettings";
+import FileHelper from "./helpers/FileHelper";
 
 process.env.JWT_SECRET ||= "ioncore_json_web_token_secret_please_change_me";
 if (!AppSystem.createDir(Path.dirname(AppSystem.getSqliteDatabasePath()))) {
@@ -56,7 +58,74 @@ export class User extends Model<UserAttributes, UserAttributesCreation> implemen
    */
   public async getMusicPath() {
     // TODO: Make this configurable
-    return "C:/Users/lucas/Music/tpoly";
+    const p = "C:/Users/lucas/Music/tpoly";
+    if (!await FileHelper.pathExists(p)) {
+      await fs.promises.mkdir(p, { recursive: true }).catch(() => { });
+    }
+    return p;
+  }
+
+  /**
+   * Returns the path to the music folder for this user.
+   */
+  public async getDataDirectoryPath(relPath?: string) {
+    // TODO: Make this configurable
+    const p = "C:/Users/lucas/AppData/Roaming/.toxenData3";
+    if (!await FileHelper.pathExists(p)) {
+      await fs.promises.mkdir(p, { recursive: true }).catch(() => { });
+    }
+    if (relPath) {
+      return Path.join(p, relPath);
+    }
+    return p;
+  }
+
+  private static defaultSettings: ISettings = {
+    showAdvancedSettings: false,
+    isRemote: false,
+    volume: 50,
+    exposePanelIcons: true,
+    backgroundDynamicLighting: true,
+    backgroundDim: 50,
+    discordPresence: true,
+    discordPresenceDetailed: true,
+    panelDirection: "left",
+    panelVerticalTransition: false,
+    repeat: false,
+    shuffle: false,
+    visualizerRainbowMode: false,
+    pauseWithClick: true,
+    visualizerPulseBackground: false,
+    acceptedResponsibility: false,
+    hueEnabled: false,
+    libraryDirectory: "",
+    progressBarShowMs: false,
+    visualizerShuffle: false,
+  };
+  
+  public async getSettings(): Promise<ISettings> {
+    const settingsFile = await this.getDataDirectoryPath("settings.json");
+    if (!await FileHelper.pathExists(settingsFile)) {
+      await fs.promises.writeFile(settingsFile, JSON.stringify(User.defaultSettings)).catch(() => { });
+    }
+
+    const settings: ISettings = { ...User.defaultSettings };
+    return fs.promises.readFile(settingsFile, "utf8").then(data => {
+      const newData = JSON.parse(data) as ISettings;
+      Object.assign(settings, newData);
+      return settings;
+    }).catch(() => {
+      return settings;
+    });
+  }
+
+  public async saveSettings(settings: Partial<ISettings>): Promise<ISettings> {
+    const currentSettings = await this.getSettings();
+    const newSettings: ISettings = { ...currentSettings, ...settings };
+    const settingsFile = await this.getDataDirectoryPath("settings.json");
+
+    await fs.promises.writeFile(settingsFile, JSON.stringify(newSettings)).catch(() => { });
+    return newSettings;
   }
 
   public async getTracks() {

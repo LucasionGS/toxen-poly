@@ -20,9 +20,9 @@ export default function MusicList() {
 
   return (
     <div className="toxen-app-music-list">
-      <h1 style={{
+      <h3 style={{
         textAlign: "center",
-      }}>Music List</h1>
+      }}>Music List</h3>
       {controller.trackList.map((x, i) => (
         <Button
           fullWidth

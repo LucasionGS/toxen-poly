@@ -2,20 +2,15 @@
   position: relative;
   display: flex;
   flex-direction: column;
+
+  container-type: size;
 }
 
 .toxen-player {
   position: relative;
   user-select: none;
-  width: 100%;
-  height: 100%;
-}
-
-@media only screen and (max-width: 768px) {
-  .toxen-player {
-    width: 100%;
-    height: 50vh;
-  }
+  width: 100cqw;
+  height: 100cqh;
 }
 
 .toxen-player-video {
@@ -39,7 +34,6 @@
   font-size: 1.5em;
   text-shadow: 0px 0px 10px black;
   background-color: rgba(0, 0, 0, 0.5);
-  transition: 0.5s;
   cursor: pointer;
 }
 
@@ -56,16 +50,16 @@
   font-size: 1.5em;
   text-shadow: 0px 0px 10px black;
   background-color: rgba(0, 0, 0, 0.5);
-  transition: 0.5s;
   cursor: pointer;
 }
 
 .toxen-player-background {
   position: absolute;
+  left: 0;
+  top: 0;
   width: 100%;
   height: 100%;
   z-index: -1;
-  transition: 0.5s;
 
   .toxen-player-background-img {
     display: block;
@@ -75,12 +69,20 @@
   }
 }
 
+.toxen-player-background-overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100cqw;
+  height: 100cqh;
+  z-index: 0;
+}
+
 .toxen-player-bottomsection {
   position: absolute;
   bottom: 0;
-  width: 100%;
+  width: 100cqw;
   z-index: 1;
-  transition: 0.5s;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -104,10 +106,9 @@
 
 .toxen-player-progress-bar {
   position: relative;
-  width: 100%;
+  width: 100cqw;
   height: 5px;
   z-index: 2;
-  transition: 0.5s;
   cursor: pointer;
   display: flex;
   flex-direction: row;
@@ -118,13 +119,39 @@
 
 .toxen-player-volume-slider {
   position: relative;
-  width: 100%;
+  width: 100cqw;
   height: 5px;
   z-index: 2;
-  transition: 0.5s;
   cursor: pointer;
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
+}
+
+.toxen-player-audio-visualizer {
+  position: relative;
+  .toxen-player-audio-visualizer-canvas {
+    width: 100cqw;
+    height: 100cqh;
+  }
+}
+
+@container (max-width: 768px) {
+  .toxen-player {
+    width: 100cqw;
+    height: 50cqh;
+  }
+
+  .toxen-player-background-overlay {
+    width: 100cqw;
+    height: 50cqh;
+  }
+
+  .toxen-player-audio-visualizer {
+    .toxen-player-audio-visualizer-canvas {
+      width: 100cqw;
+      height: 50cqh;
+    }
+  }
 }

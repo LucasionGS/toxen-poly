@@ -7,6 +7,7 @@ import "./ToxenApp.scss";
 import MusicList from "../../components/MusicList/MusicList";
 import PrimaryPanel from "../../components/PrimaryPanel/PrimaryPanel";
 import { mergeDeep } from "../../helpers/mergeDeep";
+import { useSettings } from "../../components/SettingsProvider/SettingsProvider";
 
 const toxenThemes: Record<string, MantineThemeOverride> = {
   default: {
@@ -61,7 +62,7 @@ const toxenThemes: Record<string, MantineThemeOverride> = {
 
 export default function ToxenApp() {
   const [themeName, setThemeName] = React.useState("default");
-
+  // const settings = useSettings();
   const themeObject = React.useMemo(() => {
     const data: MantineThemeOverride = { colorScheme: "dark" };
     mergeDeep(data, toxenThemes.default);
@@ -70,14 +71,24 @@ export default function ToxenApp() {
     }
     return data;
   }, [themeName]);
+
+  // console.log(Object.keys(settings.state));
+  
+  // if (Object.keys(settings.state).length === 0) {
+  //   return (
+  //     <div className="toxen-app">Loading settings</div>
+  //   )
+  // }
+  
   return (
     <MantineProvider theme={themeObject}>
       <ToxenPlayer.Provider>
         <div className="toxen-app">
           {/* <MusicList /> */}
           <ToxenPlayer
-            width={"100%"}
-            height={"100%"}
+            width={600}
+            height={500}
+            fillscreen
             background
             controls
             progressBar

@@ -2,7 +2,7 @@
   position: absolute;
   top: 0;
   left: 0;
-  height: 100vh;
+  height: 100cqh;
   z-index: 10;
 
   transition: opacity 0.5s ease-in-out;
@@ -10,28 +10,28 @@
 
 .toxen-primary-panel-tabs-content {
   transition: 0.5s;
-  height: 100vh;
-  max-width: 0vw;
+  max-width: 0cqw;
+  height: 100cqh;
   overflow-y: auto;
 }
 
 .toxen-primary-panel-tabs-content.toxen-primary-panel-tabs-content--active {
-  max-width: 100vw;
+  max-width: 100cqw;
 }
 
-@media only screen and (max-width: 768px) {
+@container (max-width: 768px) {
   .toxen-primary-panel {
     position: relative;
-    width: 100vw;
-    height: 50vh;
+    width: 100cqw;
+    height: 50cqh;
     top: 0;
     left: 0;
     z-index: 10;
   }
 
   .toxen-primary-panel-tabs-content {
-    max-width: 100vw;
-    width: 100vw;
-    height: calc(50vh - 54px);
+    max-width: 100cqw;
+    width: 100cqw;
+    height: calc(50cqh - 54px);
   }
 }

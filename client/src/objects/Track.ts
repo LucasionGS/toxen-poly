@@ -1,7 +1,7 @@
 import BaseApi from "../Api/BaseApi";
 import ToxenApi from "../Api/ToxenApi";
 import { VisualizerStyle } from "./VisualizerStyle";
-import { ITrack, ITrackPaths } from "@shared/track";
+import { ITrack, ITrackPaths } from "@shared/ITrack";
 
 export default class Track {
   public data: ITrack;
