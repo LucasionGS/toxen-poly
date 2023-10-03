@@ -6,6 +6,7 @@ import { useClickOutside, useResizeObserver, useViewportSize } from '@mantine/ho
 import { IconMusic, IconSettings, IconX } from "@tabler/icons-react";
 import MusicList from "../MusicList/MusicList";
 import { useDraggable } from "react-use-draggable-scroll";
+import SettingsSection from "../SettingsSection/SettingsSection";
 
 export default function PrimaryPanel() {
   const controller = ToxenPlayer.useController();
@@ -70,7 +71,7 @@ export default function PrimaryPanel() {
             <MusicList />
           </Tabs.Panel>
           <Tabs.Panel value="settings">
-            <h1>Settings</h1>
+            <SettingsSection />
           </Tabs.Panel>
         </div>
         {isMobile && <TabsList />}

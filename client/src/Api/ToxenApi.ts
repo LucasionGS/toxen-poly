@@ -32,14 +32,30 @@ namespace ToxenApi {
   export async function saveSettings(settings: Partial<ISettings>, applyTo?: Settings): Promise<void>;
   export async function saveSettings(settings: Partial<ISettings>, applyTo?: Settings) {
     if (applyTo) applyTo.apply(settings);
-    await fetch(`${ToxenApi.server}/api/settings`, {
-      method: "POST",
-      body: JSON.stringify(settings),
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
+    await scheduleSaveSettings(settings);
   }
+
+  /**
+   * Schedule a save settings request. This will wait (default `2000`) milliseconds before sending the request. If another request is scheduled, the previous one will be cancelled.
+   * @param settings Settings to apply
+   */
+  async function scheduleSaveSettings(settings: Partial<ISettings>, timer: number = 2000) {
+    if (saveSettingsTimeout) clearTimeout(saveSettingsTimeout);
+    scheduledSaveSettings = { ...scheduledSaveSettings, ...settings };
+    saveSettingsTimeout = setTimeout(async () => {
+      await fetch(`${ToxenApi.server}/api/settings`, {
+        method: "POST",
+        body: JSON.stringify(scheduledSaveSettings),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+      scheduledSaveSettings = {};
+    }, timer ?? 2000);
+  }
+
+  let saveSettingsTimeout: NodeJS.Timeout;
+  let scheduledSaveSettings: Partial<ISettings> = {};
 }
 
 export default ToxenApi;

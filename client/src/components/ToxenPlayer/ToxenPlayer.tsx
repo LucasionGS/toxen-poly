@@ -669,6 +669,8 @@ namespace ToxenPlayer {
     // const [canvasHeight, setCanvasHeight] = React.useState<number>(0);
     const [animationFrame, setAnimationFrame] = React.useState<number>(0);
 
+    const settings = useSettings();
+
     React.useEffect(() => {
       if (!controller.videoRef) return;
       const { audioAnalyser } = controller;
@@ -704,6 +706,8 @@ namespace ToxenPlayer {
         
         audioAnalyser.getByteFrequencyData(dataArray);
         canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+        canvasCtx.fillStyle = `rgba(0, 0, 0, ${(settings.get("backgroundDim") ?? 0) / 100})`;
+        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
         const barWidth = (canvas.width / bufferLength) * 2.5;
         let barHeight;
         let x = 0;
@@ -721,7 +725,7 @@ namespace ToxenPlayer {
       return () => {
         cancelAnimationFrame(animationFrame);
       }
-    }, [controller.audioAnalyser, canvas, dataArray, controller.track]);
+    }, [controller.audioAnalyser, canvas, dataArray, controller.track, settings]);
 
     return (
       <div className="toxen-player-audio-visualizer">
