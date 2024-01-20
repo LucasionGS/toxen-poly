@@ -82,5 +82,37 @@
       },
       "problemMatcher": []
     },
+    {
+      "label": "New component",
+      "linux": {
+        "command": "mkdir ${input:componentName} && touch '${input:componentName}/${input:componentName}.tsx' '${input:componentName}/${input:componentName}.scss' && code '${input:componentName}/${input:componentName}.tsx'"
+      },
+      "windows": {
+        "command": "New-Item -ItemType Directory -Name ${input:componentName} -Path .; New-Item -ItemType File -Name '${input:componentName}/${input:componentName}.tsx' -Path .; New-Item -ItemType File -Name '${input:componentName}/${input:componentName}.scss' -Path .; code '${input:componentName}/${input:componentName}.tsx'"
+      },
+
+      "type": "shell",
+      "options": {
+        "cwd": "${workspaceFolder}/client/src/components"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": false,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+    }
   ],
+
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "componentName",
+      "description": "Complete my folder name",
+      "default": "Component to create..."
+    }
+  ]
 }

@@ -1,13 +1,14 @@
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import Track from '../../objects/Track';
 
 import "./ToxenPlayer.scss";
-import { Button, Slider } from '@mantine/core';
 import { IconArrowsShuffle, IconPlayerPauseFilled, IconPlayerPlayFilled, IconPlayerTrackNextFilled, IconPlayerTrackPrevFilled, IconRepeat } from '@tabler/icons-react';
 import secondsToTimestamp from '../../helpers/secondsToTimestamp';
 import PrimaryPanel from '../PrimaryPanel/PrimaryPanel';
 import { useIdle, useResizeObserver } from '@mantine/hooks';
 import { useSettings } from '../SettingsProvider/SettingsProvider';
+import Slider from '../Slider/Slider';
+import Button from '../Button/Button';
 
 const ToxenPlayerContext = React.createContext<ToxenPlayer.ToxenPlayerController>({} as any);
 
@@ -113,7 +114,7 @@ function ToxenPlayer(props: ToxenPlayerProps) {
         <div className="toxen-player-overlay">
           {props.background && (
             <ToxenPlayer.Background>
-              <ToxenPlayer.AudioVisualizer />
+              <ToxenPlayer.AudioVisualizer id="primary" />
             </ToxenPlayer.Background>
           )}
           <div className="toxen-player-bottomsection">
@@ -575,11 +576,11 @@ namespace ToxenPlayer {
     const settings = useSettings();
 
     React.useEffect(() => {
-      setVolume(controller.getVolume());
+      setVolume(controller.getVolume() * 100);
 
       // Subscribe to volume change
       return controller.subscribeVideoEvent("volumechange", () => {
-        setVolume(controller.getVolume());
+        setVolume(controller.getVolume() * 100);
       });
     }, [controller.getVolume()]);
 
@@ -588,13 +589,12 @@ namespace ToxenPlayer {
         <Slider
           className="toxen-player-volume-slider-bar"
           value={volume}
-          onChange={v => { setVolume(v); controller.setVolume(v) }}
-          onChangeEnd={v => { setVolume(v); controller.setVolume(v); settings.set("volume", v * 100); }}
+          onChange={v => { setVolume(v); controller.setVolume(v / 100); settings.set("volume", v); }}
+          onChangeEnd={v => { setVolume(v); controller.setVolume(v / 100); settings.set("volume", v); }}
           min={0}
-          max={1}
-          step={0.01}
-          label={(v) => `${Math.round(v * 100)}%`}
-          style={{
+          max={100}
+          label={(v) => `${Math.round(v)}%`}
+          containerStyle={{
             width: "50cqw"
           }}
         />
@@ -629,13 +629,14 @@ namespace ToxenPlayer {
         <Slider
           className="toxen-player-progress-bar-bar"
           thumbSize={16}
-          size="xl"
+          size={4}
           value={progress}
           onChange={v => {
             setProgress(v);
             // controller.seekTo(v);
             setSeeking(true);
           }}
+          step={0.01}
           onChangeEnd={v => {
             const isEnded = controller.videoRef?.ended;
             controller.seekTo(v);
@@ -646,20 +647,29 @@ namespace ToxenPlayer {
           }}
           min={0}
           max={controller.videoRef?.duration || 1}
-          step={1}
           label={(v) => `${secondsToTimestamp(v, "minutes")} / ${secondsToTimestamp(controller.videoRef?.duration || 0, "minutes")}`}
-          style={{
-            width: "90cqw"
+          containerStyle={{
+            width: "85cqw"
           }}
         />
       </div>
     );
   }
 
+  // Used to cancel old animation frames to avoid duplicate draw calls.
+  const audioVisualizerDrawFunctions: Record<string, (values?: Record<string, any>) => void> = {
+    
+  }
+
   /**
    * Audio visualizer effects. Animations on the background are drawn by a canvas.
    */
-  export function AudioVisualizer() {
+  export function AudioVisualizer(props: {
+    /**
+     * This is mandatory. It is used to identify the canvas and prevent duplicate draws.
+     */
+    id: string;
+  }) {
     const controller = ToxenPlayer.useController();
     const [bufferLength, setBufferLength] = React.useState<number>(0);
     const [dataArray, setDataArray] = React.useState<Uint8Array | null>(null);
@@ -683,49 +693,51 @@ namespace ToxenPlayer {
       setDataArray(dataArray);
     }, [controller.videoRef, controller.audioAnalyser]);
 
-    React.useEffect(() => {
-      const { audioAnalyser } = controller;
+    const { audioAnalyser } = controller;
+    
+    const canvasCtx = canvas?.getContext("2d");
+    // TODO: The draw function is called twice multiple times due to updates, figure out how to fix this.
+    audioVisualizerDrawFunctions[props.id] = () => {
+      // setAnimationFrame(
+      //   );
+      requestAnimationFrame(() => audioVisualizerDrawFunctions[props.id]());
+      // console.log("drawbefore");
       if (!audioAnalyser) return;
       if (!canvas) return;
-
-      const canvasCtx = canvas?.getContext("2d");
       if (!canvasCtx) return;
-      // setCanvasContext(canvasCtx);
-      // setCanvasWidth(canvas.width);
-      // setCanvasHeight(canvas.height);
-
-
       if (!dataArray) return;
-
-      const draw = () => {
-        setAnimationFrame(requestAnimationFrame(draw));
-
-        // Resize canvas
-        canvas.width = canvas.clientWidth;
-        canvas.height = canvas.clientHeight;
-        
-        audioAnalyser.getByteFrequencyData(dataArray);
-        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
-        canvasCtx.fillStyle = `rgba(0, 0, 0, ${(settings.get("backgroundDim") ?? 0) / 100})`;
-        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-        const barWidth = (canvas.width / bufferLength) * 2.5;
-        let barHeight;
-        let x = 0;
-        // canvasCtx.fillStyle = `rgb(${barHeight + 100},50,50)`;
-        canvasCtx.fillStyle = controller.track?.data.visualizerColor ?? "#fff";
-        for (let i = 0; i < bufferLength; i++) {
-          barHeight = dataArray[i] * 1.5;
-          canvasCtx.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2);
-          x += barWidth;
-        }
+      // console.log("draw");
+      
+      // Resize canvas
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+      
+      audioAnalyser.getByteFrequencyData(dataArray);
+      canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+      canvasCtx.fillStyle = `rgba(0, 0, 0, ${(settings.get("backgroundDim") ?? 0) / 100})`;
+      canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+      const barWidth = (canvas.width / bufferLength) * 2.5;
+      let barHeight;
+      let x = 0;
+      // canvasCtx.fillStyle = `rgb(${barHeight + 100},50,50)`;
+      canvasCtx.fillStyle = controller.track?.data.visualizerColor ?? "#fff";
+      for (let i = 0; i < bufferLength; i++) {
+        barHeight = dataArray[i] * 1.5;
+        canvasCtx.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2);
+        x += barWidth;
       }
-
-      draw();
-
+    };
+    
+    React.useEffect(() => {
+      if (canvas && audioVisualizerDrawFunctions[props.id]) {
+        audioVisualizerDrawFunctions[props.id]();
+        console.log("Redraw", props.id);
+      }
       return () => {
+        console.log("Cancel old draw");
         cancelAnimationFrame(animationFrame);
       }
-    }, [controller.audioAnalyser, canvas, dataArray, controller.track, settings]);
+    }, [canvas, !audioVisualizerDrawFunctions[props.id]]);
 
     return (
       <div className="toxen-player-audio-visualizer">

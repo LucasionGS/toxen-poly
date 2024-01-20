@@ -1,9 +1,8 @@
 import React from "react";
 import ToxenPlayer from "../ToxenPlayer/ToxenPlayer";
 import ToxenApi from "../../Api/ToxenApi";
-import { useDraggable } from "react-use-draggable-scroll";
-import { Button } from "@mantine/core";
 import "./MusicList.scss";
+import Button from "../Button/Button";
 
 export default function MusicList() {
   const controller = ToxenPlayer.useController();

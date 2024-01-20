@@ -135,11 +135,20 @@ export class User extends Model<UserAttributes, UserAttributesCreation> implemen
     }).then(async dirs => {
       // Read the info.json file for each directory
       const infos = await Promise.all(dirs.map(async dir => {
-        return fs.promises.readFile(Path.join(musicPath, dir, "info.json"), "utf8").then(data => {
-          return JSON.parse(data) as ITrack;
-        }).catch(() => {
+        try {
+          const pth = Path.join(musicPath, dir, "info.json");
+          if (!await FileHelper.pathExists(pth)) {
+            return null;
+          }
+          return fs.promises.readFile(pth, "utf8").then(data => {
+            return JSON.parse(data) as ITrack;
+          }).catch(() => {
+            return null;
+          });
+        } catch (error) {
+          console.error(error);
           return null;
-        });
+        }
       }));
       return infos.filter(Boolean) as ITrack[];
     });
@@ -147,7 +156,7 @@ export class User extends Model<UserAttributes, UserAttributesCreation> implemen
 
   public async getTrack(foldername: string) {
     const trackPath = await this.getMusicPath() + "/" + foldername;
-    if (await fs.promises.stat(trackPath).then(() => true).catch(() => false)) {
+    if (await FileHelper.pathExists(trackPath + "/info.json")) {
       const info = await fs.promises.readFile(trackPath + "/info.json", "utf8").then(data => {
         return JSON.parse(data) as ITrack;
       }).catch(() => {

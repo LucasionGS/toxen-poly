@@ -1,12 +1,11 @@
 import React from "react"
 import ReactDOM from "react-dom/client"
 import "./index.scss"
-import { Router, Route } from "@ioncore/theme/Router"
+import { Router, Route, ErrorPage } from "@ioncore/theme/Router"
 import { IoncoreProvider } from "@ioncore/theme"
 import IoncoreLoader from "./components/IoncoreLoader/IoncoreLoader"
 import UserApi from "./Api/UserApi"
 import BaseApi from "./Api/BaseApi"
-import ErrorPage from "./pages/Error/Error"
 import SettingsProvider from "./components/SettingsProvider/SettingsProvider"
 
 function requirement(opts: {
@@ -62,22 +61,6 @@ const pages: Route[] = [
       return <HomePage />
     },
   },
-  {
-    path: /^\/login$/,
-    title: "Login",
-    component: async () => {
-      const LoginPage = (await import("./pages/Login/Login")).default;
-      return <LoginPage />
-    },
-  },
-  requirement({ permission: "DASHBOARD_VIEW" }, {
-    path: /^\/admin(\/|$)/,
-    title: "Admin",
-    component: async () => {
-      const AdminPage = (await import("./pages/Admin/Admin")).default;
-      return <AdminPage />
-    },
-  }),
 ]
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(

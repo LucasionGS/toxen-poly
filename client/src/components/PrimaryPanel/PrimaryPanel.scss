@@ -6,6 +6,22 @@
   z-index: 10;
 
   transition: opacity 0.5s ease-in-out;
+
+  .toxen-primary-panel-tabs-list__close-button {
+    transition: all 0.5s ease-out;
+    transform: rotate(135deg);
+    color: transparentize(rgb(0, 237, 0), 0.5);
+    background-color: transparentize(green, 0.5);
+    border-radius: 50%;
+  }
+  
+  &.toxen-primary-panel--open {
+    .toxen-primary-panel-tabs-list__close-button {
+      transform: rotate(0deg);
+      color: transparentize(rgb(255, 0, 0), 0.5);
+      background-color: transparentize(rgb(172, 0, 0), 0.75);
+    }
+  }
 }
 
 .toxen-primary-panel-tabs-content {
@@ -32,6 +48,6 @@
   .toxen-primary-panel-tabs-content {
     max-width: 100cqw;
     width: 100cqw;
-    height: calc(50cqh - 54px);
+    height: calc(50cqh - 53px);
   }
 }

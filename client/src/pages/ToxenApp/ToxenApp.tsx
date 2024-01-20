@@ -14,16 +14,16 @@ const toxenThemes: Record<string, MantineThemeOverride> = {
     colors: {
       primary: [
         // https://mantine.dev/colors-generator/?color=2BDD66
-        '#e5feee',
-        '#d2f9e0',
-        '#a8f1c0',
-        '#7aea9f',
-        '#53e383',
-        '#3bdf70',
-        '#2bdd66',
-        '#1ac455',
-        '#0caf49',
-        '#00963c'
+        "#e5feee",
+        "#d2f9e0",
+        "#a8f1c0",
+        "#7aea9f",
+        "#53e383",
+        "#3bdf70",
+        "#2bdd66",
+        "#1ac455",
+        "#0caf49",
+        "#00963c"
       ],
 
       tBackdrop: [
@@ -45,16 +45,33 @@ const toxenThemes: Record<string, MantineThemeOverride> = {
     colors: {
       // https://mantine.dev/colors-generator/?color=F018E8
       primary: [
-        '#fbe5fb',
-        '#f8d2f8',
-        '#f2a8f2',
-        '#ec7aec',
-        '#e553e5',
-        '#e03be0',
-        '#dd2bdd',
-        '#d61ac4',
-        '#c40caf',
-        '#b40996'
+        "#fbe5fb",
+        "#f8d2f8",
+        "#f2a8f2",
+        "#ec7aec",
+        "#e553e5",
+        "#e03be0",
+        "#dd2bdd",
+        "#d61ac4",
+        "#c40caf",
+        "#b40996"
+      ]
+    }
+  },
+  goodSpice: {
+    colors: {
+      // https://mantine.dev/colors-generator/?color=C91A25
+      primary: [
+        "#ffeaec",
+        "#fdd4d6",
+        "#f4a7ac",
+        "#ec777e",
+        "#e64f57",
+        "#e3353f",
+        "#e22732",
+        "#c91a25",
+        "#b31220",
+        "#9e0419"
       ]
     }
   },

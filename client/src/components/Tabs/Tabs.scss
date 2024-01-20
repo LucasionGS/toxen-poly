@@ -1,0 +1,108 @@
+.toxen-tabs {
+  display: flex;
+  justify-content: space-between;
+  // padding: 10px;
+  background-color: #1b1b1b;
+  color: currentColor;
+
+  &.toxen-tabs-horizontal {
+    flex-direction: row;
+  }
+
+  &.toxen-tabs-vertical {
+    flex-direction: column;
+  }
+  
+  .toxen-tabs-tab {
+    display: flex;
+    flex: 1;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    color: #333;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+
+    &.toxen-tabs-tab-current {
+      background-color: #bbb;
+    }
+
+    &:hover {
+      background-color: #ddd;
+    }
+
+    &.active {
+      background-color: #bbb;
+    }
+
+    .toxen-tabs-tab-left-section {
+      float: left;
+    }
+
+    .toxen-tabs-tab-content {
+      clear: both;
+    }
+
+    svg, img {
+      display: block;
+      stroke: currentColor;
+    }
+  }
+
+  .toxen-tabs-list {
+    display: flex;
+  }
+
+  .toxen-tabs-list-horizontal {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+
+    .toxen-tabs-tab {
+      border-radius: 0;
+
+      &:first-of-type {
+        border-top-left-radius: 5px;
+        border-bottom-left-radius: 5px;
+      }
+
+      &:last-of-type {
+        border-top-right-radius: 5px;
+        border-bottom-right-radius: 5px;
+      }
+      
+      border-bottom: 1px solid white;
+      box-sizing: border-box;
+    }
+  }
+
+  .toxen-tabs-list-vertical {
+    display: block;
+    align-items: center;
+    flex-wrap: wrap;
+
+    .toxen-tabs-tab {
+      border-radius: 0;
+
+      &:first-of-type {
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
+      }
+
+      &:last-of-type {
+        border-bottom-left-radius: 5px;
+        border-bottom-right-radius: 5px;
+      }
+      
+      border-right: 1px solid white;
+      box-sizing: border-box;
+    }
+  }
+
+  .toxen-tabs-list-left { justify-content: flex-start; }
+  .toxen-tabs-list-right { justify-content: flex-end; }
+  .toxen-tabs-list-center { justify-content: center; }
+  .toxen-tabs-list-apart { justify-content: space-around; }
+}
