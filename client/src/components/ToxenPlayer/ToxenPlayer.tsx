@@ -429,7 +429,7 @@ namespace ToxenPlayer {
     // Subscribe to events
     React.useEffect(() => {
 
-      setVolume(settings.get("volume")! / 100);
+      setVolume((settings.get("volume") ?? 0) / 100);
 
       const onPause = () => setPaused(true);
       const onPlay = () => setPaused(false);

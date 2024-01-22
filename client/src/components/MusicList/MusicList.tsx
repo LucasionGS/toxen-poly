@@ -23,19 +23,50 @@ export default function MusicList() {
         textAlign: "center",
       }}>Music List</h3>
       {controller.trackList.map((x, i) => (
-        <Button
-          fullWidth
-          key={x.uid + i}
-          className="toxen-music-list-item"
-          onClick={() => controller.play(x)}
-          variant={current === x ? "filled" : "subtle"}
-          // leftIcon={<img src={x.backgroundPath!} style={{
-          //   maxWidth: 50,
-          //   maxHeight: 50,
-          // }} />}
-        >
-          {x.artist} - {x.title}
-        </Button>
+        <div
+          style={{
+            position: "relative",
+          }}
+          className="toxen-app-music-list__item-container"
+          >
+          <div
+            className="toxen-app-music-list__item-background"
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              backgroundImage: `url('${x.backgroundPath}')`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          >
+          </div>
+          <div
+            style={{
+              position: "relative",
+              zIndex: 1,
+            }}
+          >
+            <Button
+              fullWidth
+              key={x.uid + i}
+              className="toxen-music-list-item"
+              onClick={() => controller.play(x)}
+              variant={current === x ? "filled" : "subtle"}
+              style={{
+                fontSize: "1.2em",
+              }}
+            // leftIcon={<img src={x.backgroundPath!} style={{
+            //   maxWidth: 50,
+            //   maxHeight: 50,
+            // }} />}
+            >
+              {x.artist} - {x.title}
+            </Button>
+          </div>
+        </div>
       ))}
     </div>
   )

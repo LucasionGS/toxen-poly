@@ -1,7 +1,7 @@
 import React from "react";
 import ToxenPlayer from "../../components/ToxenPlayer/ToxenPlayer";
 import ToxenApi from "../../Api/ToxenApi";
-import { MantineProvider, MantineThemeOverride, Button } from "@mantine/core";
+// import { MantineProvider, MantineThemeOverride, Button } from "@mantine/core";
 import { useDraggable } from "react-use-draggable-scroll";
 import "./ToxenApp.scss";
 import MusicList from "../../components/MusicList/MusicList";
@@ -9,7 +9,7 @@ import PrimaryPanel from "../../components/PrimaryPanel/PrimaryPanel";
 import { mergeDeep } from "../../helpers/mergeDeep";
 import { useSettings } from "../../components/SettingsProvider/SettingsProvider";
 
-const toxenThemes: Record<string, MantineThemeOverride> = {
+const toxenThemes: Record<string, any> = {
   default: {
     colors: {
       primary: [
@@ -81,7 +81,7 @@ export default function ToxenApp() {
   const [themeName, setThemeName] = React.useState("default");
   // const settings = useSettings();
   const themeObject = React.useMemo(() => {
-    const data: MantineThemeOverride = { colorScheme: "dark" };
+    const data = { colorScheme: "dark" };
     mergeDeep(data, toxenThemes.default);
     if (toxenThemes[themeName] && themeName !== "default") {
       mergeDeep(data, toxenThemes[themeName]);
@@ -90,30 +90,28 @@ export default function ToxenApp() {
   }, [themeName]);
 
   // console.log(Object.keys(settings.state));
-  
+
   // if (Object.keys(settings.state).length === 0) {
   //   return (
   //     <div className="toxen-app">Loading settings</div>
   //   )
   // }
-  
+
   return (
-    <MantineProvider theme={themeObject}>
-      <ToxenPlayer.Provider>
-        <div className="toxen-app">
-          {/* <MusicList /> */}
-          <ToxenPlayer
-            width={600}
-            height={500}
-            fillscreen
-            background
-            controls
-            progressBar
-            volumeSlider
-            primaryPanel
-          />
-        </div>
-      </ToxenPlayer.Provider>
-    </MantineProvider>
+    <ToxenPlayer.Provider>
+      <div className="toxen-app">
+        {/* <MusicList /> */}
+        <ToxenPlayer
+          width={600}
+          height={500}
+          fillscreen
+          background
+          controls
+          progressBar
+          volumeSlider
+          primaryPanel
+        />
+      </div>
+    </ToxenPlayer.Provider>
   )
 }

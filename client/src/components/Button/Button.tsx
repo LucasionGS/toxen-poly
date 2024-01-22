@@ -7,22 +7,26 @@ interface ButtonProps {
   onClick?: () => void;
   variant?: "filled" | "subtle";
   children?: React.ReactNode;
-  color?: string;
-  backgroundImage?: string;
-  backgroundSize?: string;
-  backgroundPosition?: string;
-  backgroundRepeat?: string;
+  color?: string,
+  style?: React.CSSProperties,
 }
 
-function Button({ fullWidth, className, onClick, variant, children }: ButtonProps) {
+function Button({
+  fullWidth,
+  className,
+  onClick,
+  variant,
+  children,
+  style = {}
+}: ButtonProps) {
   const buttonClass = `button ${variant} ${fullWidth ? "full-width" : ""} ${className}`;
-
+  
   return (
     <button
       className={buttonClass}
       onClick={onClick}
       style={{
-        "--color": "#fff",
+        ...style
       } as any}
     >
       {children}

@@ -15,3 +15,23 @@
   cursor: pointer;
   transition: 0.2s;
 }
+
+.toxen-app-music-list__item-container {
+  border-top: 1px solid #959595;
+  &:first-of-type {
+    border-top: none;
+  }
+  
+  overflow: hidden;
+  .toxen-app-music-list__item-background {
+    transition: transform 0.3s ease-out, filter 0.3s ease-out;
+    filter: blur(2px) brightness(0.5);
+    transform: scale(1);
+  }
+  &:hover {
+    .toxen-app-music-list__item-background {
+      transform: scale(1.1);
+      filter: blur(0px) brightness(0.8);
+    }
+  }
+}

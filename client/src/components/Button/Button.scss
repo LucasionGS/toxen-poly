@@ -21,19 +21,19 @@
 
 
 .button.filled {
-  background: #35a800;;
+  background: #35a700a8;
   color: #ffffff;
 }
 
 .button.subtle {
   background: transparent;
-  color: #35a800;
+  color: #ffffff;
 }
 
-.button:hover {
-  background: #288000;
-  color: #ffffff;
-  .button.subtle {
-    background: transparent;
-  }
-}
+// .button:hover {
+//   background: #288000;
+//   color: #ffffff;
+//   .button.subtle {
+//     background: transparent;
+//   }
+// }

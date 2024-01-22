@@ -2,7 +2,7 @@ import React from "react"
 import ToxenPlayer from "../ToxenPlayer/ToxenPlayer";
 import "./PrimaryPanel.scss";
 import { useClickOutside, useResizeObserver, useViewportSize } from '@mantine/hooks';
-import { IconMusic, IconSettings, IconX } from "@tabler/icons-react";
+import { Icon123, IconAccessible, IconAdjustments, IconMusic, IconSettings, IconX } from "@tabler/icons-react";
 import MusicList from "../MusicList/MusicList";
 import { useDraggable } from "react-use-draggable-scroll";
 import SettingsSection from "../SettingsSection/SettingsSection";
@@ -22,13 +22,10 @@ export default function PrimaryPanel() {
   }, []);
 
   const TabsList = (
-    <Tabs.List
-      justify={isMobile ? "apart" : "left"}
-      className={
-        "toxen-primary-panel-tabs-list"
-      }
-      orientation={isMobile ? "horizontal" : "vertical"}
-    >
+    <div style={{
+      display: isMobile ? "initial" : "flex",
+      flexDirection: isMobile ? "row" : "column",
+    }}>
       <div
         style={{
           display: isMobile ? "none" : "flex",
@@ -51,11 +48,19 @@ export default function PrimaryPanel() {
           size={32}
         />
       </div>
-      <div>
+      <Tabs.List
+        justify={isMobile ? "apart" : "left"}
+        className={
+          "toxen-primary-panel-tabs-list"
+        }
+        orientation={isMobile ? "horizontal" : "vertical"}
+      >
         <Tabs.Tab children={<IconMusic size={32} color={"green"} />} value="musiclist" onClick={openPanel} />
+        <Tabs.Tab children={<IconAdjustments size={32} color={"green"} />} value="adjustments" onClick={openPanel} />
+        <Tabs.Tab children={<IconAccessible size={32} color={"green"} />} value="accessible" onClick={openPanel} />
         <Tabs.Tab children={<IconSettings size={32} color={"green"} />} value="settings" onClick={openPanel} />
-      </div>
-    </Tabs.List>
+      </Tabs.List>
+    </div>
   );
 
   return (
