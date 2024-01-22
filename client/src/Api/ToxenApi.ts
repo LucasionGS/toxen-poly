@@ -11,7 +11,7 @@ namespace ToxenApi {
   }
 
   export function getTrackURL(track: Track) {
-    console.log(track.data.paths);
+    // console.log(track.data.paths);
     return track.data.paths?.dirname ? `${ToxenApi.server}/api/track/${track.data.paths?.dirname}` : null;
   }
 
