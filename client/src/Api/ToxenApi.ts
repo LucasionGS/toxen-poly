@@ -25,6 +25,16 @@ namespace ToxenApi {
       .then((r: { tracks: ITrack[] }) => r.tracks.map(t => new Track(t)));
   }
 
+  export async function updateTrack(foldername: string, trackData: Partial<ITrack>) {
+    return await fetch(`${ToxenApi.server}/api/track/${foldername}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(trackData)
+    }).then(r => r.json());
+  }
+
   export async function getSettings(): Promise<Settings> {
     return await fetch(`${ToxenApi.server}/api/settings`).then(r => r.json()).then((r: ISettings) => new Settings(r));
   }

@@ -168,6 +168,41 @@ export class User extends Model<UserAttributes, UserAttributesCreation> implemen
     return null;
   }
 
+  public async updateTrack(foldername: string, updateData: Partial<ITrack>) {
+    const trackPath = await this.getMusicPath() + "/" + foldername;
+    const infoPath = trackPath + "/info.json";
+    
+    if (!await FileHelper.pathExists(infoPath)) {
+      throw new Error("Track info.json not found");
+    }
+
+    // Read current track data
+    const currentData = await fs.promises.readFile(infoPath, "utf8").then(data => {
+      return JSON.parse(data) as ITrack;
+    });
+
+    // Merge with update data, handling paths carefully
+    const updatedData: ITrack = {
+      ...currentData,
+      ...updateData,
+      // Preserve some fields that shouldn't be overwritten
+      uid: currentData.uid,
+    };
+
+    // Handle paths separately to ensure type safety
+    if (updateData.paths && currentData.paths) {
+      updatedData.paths = {
+        ...currentData.paths,
+        ...updateData.paths
+      };
+    }
+
+    // Write back to file
+    await fs.promises.writeFile(infoPath, JSON.stringify(updatedData, null, 2), "utf8");
+    
+    return updatedData;
+  }
+
   public static async hashPassword(password: string) {
     return bcrypt.hash(password, 10);
   };

@@ -1,0 +1,584 @@
+@import '../../index.scss';
+
+// Backdrop overlay to prevent layout shifts and provide click-to-close
+.edit-song-panel-backdrop {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw;
+  height: 100vh;
+  width: 100svw; /* Small viewport width */
+  height: 100svh; /* Small viewport height */
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9998 !important; /* Just below the panel */
+  backdrop-filter: blur(2px);
+  /* Prevent any interaction with underlying content */
+  pointer-events: auto;
+  touch-action: none;
+  /* Prevent body scroll when panel is open */
+  overflow: hidden;
+  /* Ensure it's positioned relative to viewport */
+  inset: 0;
+}
+
+// Prevent body scroll when edit panel is open
+body:has(.edit-song-panel-backdrop) {
+  overflow: hidden;
+}
+
+.edit-song-panel {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  // width: 450px; // Remove fixed width - now dynamic
+  min-width: 350px;
+  max-width: 800px;
+  height: 100vh;
+  height: 100svh; /* Use small viewport height for better mobile support */
+  background: var(--bg-secondary, #1a1a2e);
+  border-left: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  z-index: 9999 !important; /* Very high z-index to ensure it's above everything */
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  /* Ensure fixed positioning relative to viewport, not parent */
+  transform: translateZ(0);
+  will-change: transform;
+  /* Complete isolation from parent containers */
+  contain: layout style paint;
+  isolation: isolate;
+  /* Ensure it's not affected by any parent transforms or positioning */
+  position: fixed;
+  inset: 0 0 0 auto; /* Alternative way to set positioning */
+  // width: 450px; // Remove duplicate width
+  
+  @media (max-width: 768px) {
+    width: 100vw !important;
+    width: 100svw;
+    min-width: 100vw;
+    max-width: 100vw;
+    left: 0 !important;
+    right: auto !important;
+    inset: 0;
+  }
+
+  &__header {
+    background: var(--bg-primary, #16213e);
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-primary, #ffffff);
+    
+    h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    
+    svg {
+      color: var(--accent-color, #0f3460);
+    }
+  }
+
+  &__changes-indicator {
+    width: 8px;
+    height: 8px;
+    background: var(--accent-color, #e94560);
+    border-radius: 50%;
+    margin-left: 0.5rem;
+    animation: pulse 2s infinite;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__tabs {
+    display: flex;
+    background: var(--bg-primary, #16213e);
+    border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+    position: sticky;
+    top: 76px;
+    z-index: 9;
+  }
+
+  &__tab {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 0.875rem 1rem;
+    color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    position: relative;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-primary, #ffffff);
+    }
+    
+    &--active {
+      color: var(--accent-color, #0f3460);
+      background: rgba(15, 52, 96, 0.1);
+      
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--accent-color, #0f3460);
+      }
+    }
+    
+    svg {
+      opacity: 0.8;
+    }
+  }
+
+  &__content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 3px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+    }
+  }
+
+  &__section {
+    h3 {
+      color: var(--text-primary, #ffffff);
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin: 0 0 1.5rem 0;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  &__field {
+    margin-bottom: 1.5rem;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &__label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-primary, #ffffff);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    
+    svg {
+      opacity: 0.7;
+    }
+  }
+
+  &__input,
+  &__select {
+    width: 100%;
+    background: var(--bg-tertiary, rgba(255, 255, 255, 0.05));
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+    border-radius: 8px;
+    padding: 0.75rem;
+    color: var(--text-primary, #ffffff);
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    
+    &::placeholder {
+      color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+    }
+    
+    &:focus {
+      outline: none;
+      border-color: var(--accent-color, #0f3460);
+      box-shadow: 0 0 0 2px rgba(15, 52, 96, 0.2);
+      background: var(--bg-tertiary, rgba(255, 255, 255, 0.08));
+    }
+    
+    &:hover:not(:focus) {
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+  }
+
+  &__color-input {
+    width: 100%;
+    height: 40px;
+    background: var(--bg-tertiary, rgba(255, 255, 255, 0.05));
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    &:focus {
+      outline: none;
+      border-color: var(--accent-color, #0f3460);
+      box-shadow: 0 0 0 2px rgba(15, 52, 96, 0.2);
+    }
+  }
+
+  &__checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    color: var(--text-primary, #ffffff);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    line-height: 1.4;
+    
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      cursor: pointer;
+      accent-color: var(--accent-color, #0f3460);
+    }
+  }
+
+  &__help {
+    display: block;
+    color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    line-height: 1.4;
+  }
+
+  &__array-input {
+    .edit-song-panel__label {
+      margin-bottom: 0.75rem;
+    }
+  }
+
+  &__array-item {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    align-items: center;
+    
+    .edit-song-panel__input {
+      flex: 1;
+    }
+  }
+
+  &__remove-btn {
+    flex-shrink: 0;
+    padding: 0.5rem;
+    min-width: auto;
+    background: rgba(233, 69, 96, 0.1);
+    border: 1px solid rgba(233, 69, 96, 0.3);
+    color: #e94560;
+    
+    &:hover {
+      background: rgba(233, 69, 96, 0.2);
+      border-color: rgba(233, 69, 96, 0.5);
+    }
+  }
+
+  &__add-btn {
+    background: rgba(15, 52, 96, 0.1);
+    border: 1px dashed var(--accent-color, #0f3460);
+    color: var(--accent-color, #0f3460);
+    padding: 0.625rem;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    
+    &:hover {
+      background: rgba(15, 52, 96, 0.2);
+      border-style: solid;
+    }
+  }
+
+  &__danger-zone {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(233, 69, 96, 0.3);
+    
+    h4 {
+      color: #e94560;
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0 0 1rem 0;
+    }
+  }
+
+  &__delete-btn {
+    background: rgba(233, 69, 96, 0.1);
+    border: 1px solid rgba(233, 69, 96, 0.3);
+    color: #e94560;
+    
+    &:hover {
+      background: rgba(233, 69, 96, 0.2);
+      border-color: rgba(233, 69, 96, 0.5);
+    }
+  }
+
+  // Resize handle for dragging the panel width
+  &__resize-handle {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background: transparent;
+    cursor: ew-resize;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    
+    // Visual indicator
+    &::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 2px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 1px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    
+    svg {
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      color: rgba(255, 255, 255, 0.6);
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) rotate(90deg);
+    }
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+      
+      &::before {
+        opacity: 1;
+        background: rgba(255, 255, 255, 0.4);
+      }
+      
+      svg {
+        opacity: 1;
+      }
+    }
+    
+    &--dragging {
+      background: rgba(255, 255, 255, 0.1);
+      
+      &::before {
+        opacity: 1;
+        background: var(--accent-color, #00ff00);
+      }
+      
+      svg {
+        opacity: 1;
+        color: var(--accent-color, #00ff00);
+      }
+    }
+    
+    @media (max-width: 768px) {
+      width: 12px; // Make it wider on mobile for easier touch
+      
+      &::before {
+        width: 3px;
+        height: 60px;
+      }
+      
+      svg {
+        transform: translate(-50%, -50%) rotate(90deg) scale(1.2);
+      }
+    }
+  }
+
+  // Width indicator tooltip
+  &__width-indicator {
+    position: absolute;
+    left: -60px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--bg-primary, #16213e);
+    color: var(--text-primary, #ffffff);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    z-index: 11;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      right: -4px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-left: 4px solid var(--bg-primary, #16213e);
+      border-top: 4px solid transparent;
+      border-bottom: 4px solid transparent;
+    }
+  }
+}
+
+.edit-song-panel__backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 999;
+  backdrop-filter: blur(2px);
+  /* Prevent all interactions with background content */
+  pointer-events: all;
+  touch-action: none;
+  overscroll-behavior: contain;
+}
+
+/* Backdrop overlay to prevent layout shifts and provide click-to-close */
+.edit-song-panel-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  backdrop-filter: blur(2px);
+  /* Prevent any interaction with underlying content */
+  pointer-events: auto;
+  touch-action: none;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+// Dark theme adjustments
+@media (prefers-color-scheme: dark) {
+  .edit-song-panel {
+    --bg-primary: #0f0f23;
+    --bg-secondary: #16213e;
+    --bg-tertiary: rgba(255, 255, 255, 0.05);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.7);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --accent-color: #0f3460;
+  }
+}
+
+// Light theme adjustments
+@media (prefers-color-scheme: light) {
+  .edit-song-panel {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-tertiary: rgba(0, 0, 0, 0.05);
+    --text-primary: #1a1a2e;
+    --text-secondary: rgba(26, 26, 46, 0.7);
+    --border-color: rgba(0, 0, 0, 0.1);
+    --accent-color: #0f3460;
+    
+    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .edit-song-panel {
+    &__header {
+      padding: 1rem;
+    }
+    
+    &__content {
+      padding: 1rem;
+    }
+    
+    &__tabs {
+      top: 68px;
+    }
+    
+    &__tab {
+      padding: 0.75rem 0.5rem;
+      font-size: 0.8rem;
+      
+      span:not(.tab-icon) {
+        display: none;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .edit-song-panel {
+    &__actions {
+      gap: 0.25rem;
+      
+      button {
+        padding: 0.5rem;
+        font-size: 0;
+        
+        svg {
+          margin: 0;
+        }
+      }
+    }
+  }
+}

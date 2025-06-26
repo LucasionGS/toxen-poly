@@ -4,11 +4,12 @@ import "./Button.scss";
 interface ButtonProps {
   fullWidth?: boolean;
   className?: string;
-  onClick?: () => void;
+  onClick?: (e?: React.MouseEvent<HTMLButtonElement>) => void;
   variant?: "filled" | "subtle";
   children?: React.ReactNode;
   color?: string,
   style?: React.CSSProperties,
+  disabled?: boolean;
 }
 
 function Button({
@@ -17,14 +18,16 @@ function Button({
   onClick,
   variant,
   children,
-  style = {}
+  style = {},
+  disabled = false
 }: ButtonProps) {
-  const buttonClass = `button ${variant} ${fullWidth ? "full-width" : ""} ${className}`;
+  const buttonClass = `button ${variant} ${fullWidth ? "full-width" : ""} ${className} ${disabled ? "disabled" : ""}`;
   
   return (
     <button
       className={buttonClass}
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
       style={{
         ...style
       } as any}

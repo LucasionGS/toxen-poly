@@ -31,6 +31,26 @@ namespace TrackController {
       root: musicPath
     });
   });
+
+  router.put("/:foldername", User.$middleware(), async (req, res) => {
+    try {
+      const user = User.getAuthenticatedUser(req);
+      const track = await user.getTrack(req.params.foldername);
+      
+      if (!track) {
+        return res.status(404).json({ error: "Track not found" });
+      }
+
+      // Update track data with the provided information
+      const updateData = req.body;
+      const updatedTrack = await user.updateTrack(req.params.foldername, updateData);
+      
+      res.json({ success: true, track: updatedTrack });
+    } catch (error) {
+      console.error("Error updating track:", error);
+      res.status(500).json({ error: "Failed to update track" });
+    }
+  });
 }
 
 export default TrackController;
