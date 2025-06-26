@@ -13,23 +13,32 @@ interface TabsProps {
   orientation?: "horizontal" | "vertical";
   defaultValue?: string;
   className?: string;
+  onChange?: (value: string) => void;
 }
 
 const TabsContext = React.createContext<{
   value: string;
   setValue: (value: string) => void;
+  onChange?: (value: string) => void;
 }>({
   value: "",
   setValue: () => { },
+  onChange: undefined,
 });
 
-function Tabs({ children, orientation = "horizontal", defaultValue, className }: TabsProps) {
+function Tabs({ children, orientation = "horizontal", defaultValue, className, onChange }: TabsProps) {
   const [value, setValue] = React.useState(defaultValue ?? "");
+
+  const handleSetValue = React.useCallback((newValue: string) => {
+    setValue(newValue);
+    onChange?.(newValue);
+  }, [onChange]);
 
   return (
     <TabsContext.Provider value={{
       value,
-      setValue,
+      setValue: handleSetValue,
+      onChange,
     }}>
       <div className={`${className} toxen-tabs ${orientation ? "toxen-tabs-" + orientation : ""}`}>
         {children}

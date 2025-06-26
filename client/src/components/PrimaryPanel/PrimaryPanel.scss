@@ -26,13 +26,135 @@
 
 .toxen-primary-panel-tabs-content {
   transition: 0.5s;
-  max-width: 0cqw;
+  width: 0; // Use width instead of max-width for fixed sizing
   height: 100cqh;
   overflow-y: auto;
+  overflow-x: hidden; // Prevent horizontal overflow
+  position: relative; // For resize handle positioning
+  box-sizing: border-box; // Include padding/border in width calculations
+  
+  // Ensure content doesn't overflow
+  * {
+    box-sizing: border-box;
+  }
 }
 
-.toxen-primary-panel-tabs-content.toxen-primary-panel-tabs-content--active {
-  max-width: 100cqw;
+// Remove the max-width override for active state since we use width directly
+// .toxen-primary-panel-tabs-content.toxen-primary-panel-tabs-content--active {
+//   width is controlled by inline style now
+// }
+
+// Resize handle for the primary panel
+.toxen-primary-panel__resize-handle {
+  position: fixed; // Fixed to viewport, not relative to scrollable content
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: transparent;
+  cursor: ew-resize;
+  z-index: 15; // Higher z-index to stay above content
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  
+  // Visual indicator
+  &::before {
+    content: '';
+    position: absolute;
+    right: 50%;
+    top: 50%;
+    transform: translate(50%, -50%);
+    width: 2px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 1px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  
+  svg {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    color: rgba(255, 255, 255, 0.6);
+    position: absolute;
+    right: 50%;
+    top: 50%;
+    transform: translate(50%, -50%) rotate(90deg);
+  }
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+    
+    &::before {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.4);
+    }
+    
+    svg {
+      opacity: 1;
+    }
+  }
+  
+  &--dragging {
+    background: rgba(255, 255, 255, 0.1);
+    
+    &::before {
+      opacity: 1;
+      background: rgba(0, 255, 0, 0.8);
+    }
+    
+    svg {
+      opacity: 1;
+      color: rgba(0, 255, 0, 0.8);
+    }
+  }
+}
+
+// Width indicator tooltip for primary panel
+.toxen-primary-panel__width-indicator {
+  position: absolute;
+  right: -60px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  z-index: 11;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-right: 4px solid rgba(0, 0, 0, 0.8);
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+  }
+}
+
+// Scrollable content containers for each tab
+.toxen-primary-panel__scrollable-content {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  
+  // Smooth scrolling
+  scroll-behavior: smooth;
+  
+  // Performance optimizations
+  contain: layout style;
+  will-change: scroll-position;
 }
 
 @container (max-width: 768px) {
@@ -45,7 +167,7 @@
     z-index: 10;
   }
 
-  .toxen-primary-panel-tabs-content {
+  .toxen-primary-panel_tabs-content {
     max-width: 100cqw;
     width: 100cqw;
     height: calc(50cqh - 53px);

@@ -21,17 +21,26 @@
 
 .toxen-app-music-list__header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 16px;
   padding: 20px 20px 16px 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(10px);
 
+  // Top row with title and refresh button
+  .toxen-app-music-list__header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+  }
+
   .toxen-app-music-list__title {
     display: flex;
     align-items: center;
     gap: 12px;
+    flex-shrink: 0;
     
     h3 {
       margin: 0;
@@ -46,17 +55,117 @@
       background: rgba(255, 255, 255, 0.1);
       padding: 2px 8px;
       border-radius: 12px;
+      white-space: nowrap;
     }
+  }
+
+  .toxen-app-music-list__actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    justify-content: flex-end;
   }
 
   .toxen-app-music-list__refresh-btn {
     padding: 8px;
     border-radius: 8px;
     transition: all 0.2s ease;
+    flex-shrink: 0;
     
     &:hover {
       background: rgba(255, 255, 255, 0.1);
     }
+  }
+
+  // On wider panels, show search inline with title
+  @media (min-width: 480px) {
+    flex-direction: row;
+    align-items: center;
+    
+    .toxen-app-music-list__header-top {
+      flex: 0 0 auto;
+    }
+    
+    .toxen-app-music-list__actions {
+      flex: 1;
+    }
+  }
+}
+
+// Search functionality styles
+.toxen-app-music-list__search {
+  flex: 1;
+  min-width: 200px;
+  max-width: none;
+  
+  // On smaller widths, take full width
+  @media (max-width: 479px) {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  // On wider widths, limit max width
+  @media (min-width: 480px) {
+    max-width: 300px;
+  }
+}
+
+.toxen-app-music-list__search-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  &:focus-within {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+  }
+}
+
+.toxen-app-music-list__search-icon {
+  position: absolute;
+  left: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.toxen-app-music-list__search-field {
+  background: transparent;
+  border: none;
+  color: #fff;
+  padding: 10px 12px 10px 36px;
+  font-size: 0.9em;
+  width: 100%;
+  outline: none;
+  
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
+}
+
+.toxen-app-music-list__search-clear {
+  position: absolute;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
   }
 }
 

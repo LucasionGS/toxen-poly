@@ -4,7 +4,7 @@ import ToxenPlayer from "../ToxenPlayer/ToxenPlayer";
 import ToxenApi from "../../Api/ToxenApi";
 import "./MusicList.scss";
 import Button from "../Button/Button";
-import { IconRefresh, IconMusic, IconPlayerPlay, IconPlayerPause, IconEdit } from "@tabler/icons-react";
+import { IconRefresh, IconMusic, IconPlayerPlay, IconPlayerPause, IconEdit, IconSearch, IconX } from "@tabler/icons-react";
 import EditSongPanel from "../EditSongPanel/EditSongPanel";
 
 // Intersection Observer hook for visibility detection
@@ -128,6 +128,24 @@ export default function MusicList() {
   const current = controller.track;
   const [refreshing, setRefreshing] = React.useState(false);
   const [editingTrack, setEditingTrack] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Filter tracks based on search term
+  const filteredTracks = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return controller.trackList;
+    }
+    
+    const searchLower = searchTerm.toLowerCase();
+    return controller.trackList.filter(track => {
+      return (
+        track.title?.toLowerCase().includes(searchLower) ||
+        track.artist?.toLowerCase().includes(searchLower) ||
+        track.data?.album?.toLowerCase().includes(searchLower) ||
+        track.data?.year?.toString().includes(searchLower)
+      );
+    });
+  }, [controller.trackList, searchTerm]);
 
   const refreshTracks = useCallback(async () => {
     try {
@@ -179,27 +197,60 @@ export default function MusicList() {
     setEditingTrack(null);
   }, []);
 
+  const handleClearSearch = useCallback(() => {
+    setSearchTerm("");
+  }, []);
+
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  }, []);
+
   return (
     <div className="toxen-app-music-list">
       <div className="toxen-app-music-list__header">
-        <div className="toxen-app-music-list__title">
-          <IconMusic size={24} />
-          <h3>Music Library</h3>
-          <span className="toxen-app-music-list__count">
-            {controller.trackList.length} track{controller.trackList.length !== 1 ? 's' : ''}
-          </span>
+        <div className="toxen-app-music-list__header-top">
+          <div className="toxen-app-music-list__title">
+            <IconMusic size={24} />
+            <h3>Music Library</h3>
+            <span className="toxen-app-music-list__count">
+              {searchTerm ? `${filteredTracks.length} of ${controller.trackList.length}` : controller.trackList.length} track{(searchTerm ? filteredTracks.length : controller.trackList.length) !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <Button
+            variant="subtle"
+            onClick={refreshTracks}
+            className="toxen-app-music-list__refresh-btn"
+            disabled={refreshing}
+          >
+            <IconRefresh 
+              size={20} 
+              className={refreshing ? "toxen-app-music-list__refresh-spinning" : ""} 
+            />
+          </Button>
         </div>
-        <Button
-          variant="subtle"
-          onClick={refreshTracks}
-          className="toxen-app-music-list__refresh-btn"
-          disabled={refreshing}
-        >
-          <IconRefresh 
-            size={20} 
-            className={refreshing ? "toxen-app-music-list__refresh-spinning" : ""} 
-          />
-        </Button>
+        <div className="toxen-app-music-list__actions">
+          <div className="toxen-app-music-list__search">
+            <div className="toxen-app-music-list__search-input">
+              <IconSearch size={16} className="toxen-app-music-list__search-icon" />
+              <input
+                type="text"
+                placeholder="Search music..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="toxen-app-music-list__search-field"
+              />
+              {searchTerm && (
+                <button
+                  onClick={handleClearSearch}
+                  className="toxen-app-music-list__search-clear"
+                  title="Clear search"
+                >
+                  <IconX size={16} />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
       
       {controller.trackList.length === 0 ? (
@@ -208,17 +259,28 @@ export default function MusicList() {
           <h4>No music tracks found</h4>
           <p>Upload some music to get started!</p>
         </div>
+      ) : filteredTracks.length === 0 ? (
+        <div className="toxen-app-music-list__empty">
+          <IconSearch size={48} />
+          <h4>No tracks match your search</h4>
+          <p>Try a different search term or clear the search to see all tracks.</p>
+          <Button variant="subtle" onClick={handleClearSearch}>
+            Clear Search
+          </Button>
+        </div>
       ) : (
         <div className="toxen-app-music-list__items">
-          {controller.trackList.map((track, index) => {
+          {filteredTracks.map((track, index) => {
             const isCurrentTrack = current === track;
             const isPlaying = isCurrentTrack && !controller.paused;
+            // Use original index from trackList for display
+            const originalIndex = controller.trackList.findIndex(t => t.uid === track.uid);
             
             return (
               <TrackItem
                 key={track.uid}
                 track={track}
-                index={index}
+                index={originalIndex}
                 isCurrentTrack={isCurrentTrack}
                 isPlaying={isPlaying}
                 onPlay={() => handlePlayTrack(track)}
