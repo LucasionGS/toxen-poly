@@ -57,6 +57,9 @@ export default function EditSongPanel({ track, onSave, onClose, onDelete }: Edit
     visualizerForceRainbowMode: false,
     visualizerPulseBackground: "" as "" | "pulse" | "pulse-off",
     visualizerGlow: null as boolean | null,
+    visualizerOpacity: undefined as number | undefined,
+    visualizerNormalize: false,
+    visualizerShuffle: false,
     
     // Floating title settings
     floatingTitle: false,
@@ -98,6 +101,9 @@ export default function EditSongPanel({ track, onSave, onClose, onDelete }: Edit
         visualizerForceRainbowMode: track.data.visualizerForceRainbowMode || false,
         visualizerPulseBackground: track.data.visualizerPulseBackground || "",
         visualizerGlow: track.data.visualizerGlow,
+        visualizerOpacity: track.data.visualizerOpacity,
+        visualizerNormalize: track.data.visualizerNormalize || false,
+        visualizerShuffle: track.data.visualizerShuffle || false,
         floatingTitle: track.data.floatingTitle || false,
         floatingTitleText: track.data.floatingTitleText || "",
         floatingTitlePosition: track.data.floatingTitlePosition || "",
@@ -189,6 +195,9 @@ export default function EditSongPanel({ track, onSave, onClose, onDelete }: Edit
         visualizerForceRainbowMode: track.data.visualizerForceRainbowMode || false,
         visualizerPulseBackground: track.data.visualizerPulseBackground || "",
         visualizerGlow: track.data.visualizerGlow,
+        visualizerOpacity: track.data.visualizerOpacity,
+        visualizerNormalize: track.data.visualizerNormalize || false,
+        visualizerShuffle: track.data.visualizerShuffle || false,
         floatingTitle: track.data.floatingTitle || false,
         floatingTitleText: track.data.floatingTitleText || "",
         floatingTitlePosition: track.data.floatingTitlePosition || "",
@@ -555,12 +564,22 @@ export default function EditSongPanel({ track, onSave, onClose, onDelete }: Edit
             
             <div className="edit-song-panel__field">
               <label className="edit-song-panel__label">Visualizer Color</label>
-              <input
-                type="color"
-                value={formData.visualizerColor || "#ffffff"}
-                onChange={(e) => handleInputChange("visualizerColor", e.target.value)}
-                className="edit-song-panel__color-input"
-              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="color"
+                  value={formData.visualizerColor || "#ffffff"}
+                  onChange={(e) => handleInputChange("visualizerColor", e.target.value)}
+                  className="edit-song-panel__color-input"
+                />
+                <input
+                  type="text"
+                  value={formData.visualizerColor || "#ffffff"}
+                  onChange={(e) => handleInputChange("visualizerColor", e.target.value)}
+                  className="edit-song-panel__input"
+                  style={{ width: '100px' }}
+                  placeholder="#ffffff"
+                />
+              </div>
             </div>
 
             <div className="edit-song-panel__field">
@@ -571,14 +590,22 @@ export default function EditSongPanel({ track, onSave, onClose, onDelete }: Edit
                 className="edit-song-panel__select"
               >
                 <option value="">&lt;Default&gt;</option>
-                <option value="bars">Bars</option>
-                <option value="wave">Wave</option>
-                <option value="circle">Circle</option>
-                <option value="top">Top</option>
+                <option value="none">None</option>
+                <option value="progressbar">Progress Bar</option>
                 <option value="bottom">Bottom</option>
+                <option value="top">Top</option>
+                <option value="topbottom">Top and Bottom</option>
                 <option value="sides">Sides</option>
+                <option value="center">Center</option>
+                <option value="circle">Singularity</option>
+                <option value="circlelogo">Singularity with Logo</option>
+                <option value="mirroredsingularity">Mirrored Singularity</option>
+                <option value="mirroredsingularitywithlogo">Mirrored Singularity with Logo</option>
                 <option value="waveform">Waveform</option>
+                <option value="circularwaveform">Circular Waveform</option>
+                <option value="orb">Orb</option>
               </select>
+              <small className="edit-song-panel__help">Choose the visualizer style for this song</small>
             </div>
 
             <div className="edit-song-panel__field">
@@ -586,13 +613,14 @@ export default function EditSongPanel({ track, onSave, onClose, onDelete }: Edit
               <input
                 type="number"
                 value={formData.visualizerIntensity || ""}
-                onChange={(e) => handleInputChange("visualizerIntensity", e.target.value ? parseInt(e.target.value) : undefined)}
+                onChange={(e) => handleInputChange("visualizerIntensity", e.target.value ? parseFloat(e.target.value) : undefined)}
                 className="edit-song-panel__input"
-                min="1"
-                max="10"
-                placeholder="Default"
+                min="0.1"
+                max="3.0"
+                step="0.1"
+                placeholder="1.0"
               />
-              <small className="edit-song-panel__help">1-10, higher values = more intense</small>
+              <small className="edit-song-panel__help">0.1-3.0, higher values = more intense visualizer</small>
             </div>
 
             <div className="edit-song-panel__field">
@@ -602,9 +630,9 @@ export default function EditSongPanel({ track, onSave, onClose, onDelete }: Edit
                   checked={formData.visualizerForceRainbowMode}
                   onChange={(e) => handleInputChange("visualizerForceRainbowMode", e.target.checked)}
                 />
-                Force Visualizer Rainbow Mode
+                Force Rainbow Mode
               </label>
-              <small className="edit-song-panel__help">Enable to force Rainbow mode onto this song</small>
+              <small className="edit-song-panel__help">Enable rainbow colors for this song's visualizer</small>
             </div>
 
             <div className="edit-song-panel__field">
@@ -618,7 +646,7 @@ export default function EditSongPanel({ track, onSave, onClose, onDelete }: Edit
                 <option value="pulse">Enabled</option>
                 <option value="pulse-off">Disabled</option>
               </select>
-              <small className="edit-song-panel__help">Enables pulsing on the background image based off music intensity and volume</small>
+              <small className="edit-song-panel__help">Makes the background pulse based on audio intensity</small>
             </div>
 
             <div className="edit-song-panel__field">
@@ -632,7 +660,46 @@ export default function EditSongPanel({ track, onSave, onClose, onDelete }: Edit
                 <option value="enabled">Enabled</option>
                 <option value="disabled">Disabled</option>
               </select>
-              <small className="edit-song-panel__help">Enables a glow effect on the visualizer for this song</small>
+              <small className="edit-song-panel__help">Adds a glow effect to the visualizer bars/elements</small>
+            </div>
+
+            <div className="edit-song-panel__field">
+              <label className="edit-song-panel__label">Visualizer Opacity</label>
+              <input
+                type="number"
+                value={formData.visualizerOpacity || ""}
+                onChange={(e) => handleInputChange("visualizerOpacity", e.target.value ? parseFloat(e.target.value) : undefined)}
+                className="edit-song-panel__input"
+                min="0.1"
+                max="1.0"
+                step="0.1"
+                placeholder="0.7"
+              />
+              <small className="edit-song-panel__help">0.1-1.0, controls how transparent the visualizer appears</small>
+            </div>
+
+            <div className="edit-song-panel__field">
+              <label className="edit-song-panel__checkbox">
+                <input
+                  type="checkbox"
+                  checked={formData.visualizerNormalize || false}
+                  onChange={(e) => handleInputChange("visualizerNormalize", e.target.checked)}
+                />
+                Normalize Audio Data
+              </label>
+              <small className="edit-song-panel__help">Normalizes audio data for more consistent visualizer appearance</small>
+            </div>
+
+            <div className="edit-song-panel__field">
+              <label className="edit-song-panel__checkbox">
+                <input
+                  type="checkbox"
+                  checked={formData.visualizerShuffle || false}
+                  onChange={(e) => handleInputChange("visualizerShuffle", e.target.checked)}
+                />
+                Shuffle Audio Data
+              </label>
+              <small className="edit-song-panel__help">Shuffles frequency data for more random appearance (not for waveform styles)</small>
             </div>
           </div>
         )}

@@ -12,6 +12,23 @@ export interface ITrack {
   visualizerIntensity?: number;
   visualizerForceRainbowMode?: boolean;
   /**
+   * Controls the glow effect for this track's visualizer.
+   * `true` enables glow, `false` disables it, `null/undefined` uses global setting.
+   */
+  visualizerGlow?: boolean;
+  /**
+   * Controls the opacity of the visualizer bars (0.1-1.0).
+   */
+  visualizerOpacity?: number;
+  /**
+   * Whether to normalize audio data for this track.
+   */
+  visualizerNormalize?: boolean;
+  /**
+   * Whether to shuffle audio data for this track (not applicable to waveform styles).
+   */
+  visualizerShuffle?: boolean;
+  /**
    * `pulse` is forced pulsing.  
    * `pulse-off` is forced no pulsing.  
    * `null` will use the global setting.
@@ -23,6 +40,7 @@ export interface ITrack {
   subtitleDelay?: number;
 
   floatingTitle?: boolean;
+  floatingTitleText?: string;
   floatingTitlePosition?:
   | "top"
   | "bottom"
@@ -35,6 +53,9 @@ export interface ITrack {
   | "center";
   floatingTitleReactive?: boolean;
   floatingTitleOverrideVisualizer?: boolean;
+  floatingTitleUnderline?: boolean;
+  useFloatingTitleSubtitles?: boolean;
+  genre?: string;
 }
 
 export interface ITrackPaths {
